@@ -54,12 +54,21 @@ app.post('/login', (req, res) => {
       const data = doc.data();
       const hash = crypto.pbkdf2Sync(values.password, data.salt, 10000, 512, 'sha512').toString('hex');
       if (data.hash === hash) {
-        var sessionID = crypto.createHash('sha256').update("COMPSOC-KENTFLIX-" + data.email).digest('base64');
-        result.infoMessage = "User now signed in";
-        result.result = {
-          sessionID: sessionID,
-        }
-        res.send(JSON.stringify(result));
+        const sessionID = crypto.pbkdf2Sync(values.email, data.salt, 10000, 512, 'sha512').toString('hex');
+        
+        const sessionRef = db.collection("sessions").doc(sessionID);
+        userRef.set({userID: doc.id})
+            .then(function() {
+              result.infoMessage = "User now signed in";
+              result.result = {
+                sessionID: sessionID,
+              }
+              res.send(JSON.stringify(result));
+            }).catch(a =>{
+              result.error = true;
+              result.infoMessage = "Failed to create a session";
+              res.send(JSON.stringify(result));
+            });
       } else {
         result.error = true;
         result.infoMessage = "Invalid Password";
@@ -125,7 +134,6 @@ app.post('/signup', (req, res) => {
           result.infoMessage = "This email has already been used";
           res.send(JSON.stringify(result));
         } else {
-
           const salt = crypto.randomBytes(16).toString('hex');
           const hash = crypto.pbkdf2Sync(values.password, salt, 10000, 512, 'sha512').toString('hex');
           const userObj = {
