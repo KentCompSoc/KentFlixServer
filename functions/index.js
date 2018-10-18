@@ -4,10 +4,14 @@ const express = require("express");
 const admin = require('firebase-admin');
 const bodyParser = require("body-parser");
 const crypto = require('crypto');
+const request = require('request');
+
 
 const app1 = express();
 admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
+const settings = {timestampsInSnapshots: true};
+db.settings(settings);
 const app = express();
 const main = express();
 const gmailEmail = functions.config().gmail.email;
@@ -35,6 +39,100 @@ app.post('/me', (req, res) => {
   res.send(JSON.stringify(result));
 });
 
+
+app.post('/feed/:courseID/update', (req, res) => {
+  const courseID = req.params.courseID;
+  const json = req.body.feedJSON;
+    let result = {};
+    if (err) {
+      result.error = true;
+      result.infoMessage = "Could not process XML";
+      res.send(JSON.stringify(result));
+    } else {
+      json = json.rss.channel[0];
+      function roundMinutes(date) {
+        date.setHours(date.getHours() + Math.round(date.getMinutes()/60) - 1);
+        date.setMinutes(0);
+        return date.getHours() + ":" + ('00' + date.getMinutes()).slice(-2);
+      }
+      const courseRaw = json;
+      if (courseID != courseRaw.title[0].match(/([A-Z,a-z]+[0-9]+)/)[0]){
+        result.error = true;
+        result.infoMessage = "Course ID in url doesnt match XML" + courseID + " " + courseRaw.title[0].match(/([A-Z,a-z]+[0-9]+)/)[0];
+        res.send(JSON.stringify(result));
+      }
+      const course = {
+        title: courseRaw.title[0],
+        link: courseRaw.link[0],
+      };
+      
+      var batch = db.batch();
+      
+      const lectures = [];
+      for (let lecture of courseRaw.item) {
+        let title = lecture.title[0].replace(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)+(.*)+(AM|PM|am|pm)/, '');
+        if (title.length == 0)
+          title = courseRaw.title + " " + new Date(lecture.pubDate).toDateString() + " " + roundMinutes(new Date(lecture.pubDate));
+        const lectureObj = {
+          title: title,
+          author: lecture["itunes:author"][0].replace("Moodle", ""),
+          videoURL: lecture["enclosure"][0]["$"]["url"],
+          videoLength: lecture["itunes:duration"][0],
+          duration: parseInt(lecture["itunes:duration"][0] / 60) + ":"+ ("0" + parseInt(lecture["itunes:duration"][0] % 60)).slice(-2),
+          date: new Date(lecture.pubDate).toDateString() + " " + roundMinutes(new Date(lecture.pubDate)),
+        };
+        
+        var lectureRef = db.collection("courses").doc(course.title.match(/([A-Z,a-z]+[0-9]+)/)[0]).collection("lectures").doc(lectureObj.date);
+        batch.set(lectureRef, lectureObj);
+        lectureObj.id = lectureObj.date;
+        lectures.push(lectureObj);
+      }
+      course.lectures = lectures;
+      var courseRef = db.collection("courses").doc(course.title.match(/([A-Z,a-z]+[0-9]+)/)[0]);
+      batch.set(courseRef, course);
+      batch.commit().then(function () {
+        course.id = course.title.match(/([A-Z,a-z]+[0-9]+)/)[0];
+        res.send(JSON.stringify(course));
+      });
+    }
+  
+});
+/*
+  const feed = req.body.feedXML;
+  const feedJSON = JSON.parse(feed); //convert so xml covnerter
+  const courseRef = db.collection("courses").doc(feed);
+  let courseObj = {
+    title:
+    link:
+    image:
+    video: {
+      "43045886-be27-4285-a3af-a96500b6e27a"; {
+        "title": "Mon, Sep 24 2018 at 12: 01 PM",
+        "author": "djb",
+        "src": "https://player.kent.ac.uk/Panopto/Podcast/Syndication/43045886-be27-4285-a3af-a96500b6e27a.mp4",
+        "duration": 2971,
+        "progress": 1321,
+        "publish": "Mon, 24 Sep 2018 11: 05: 52 GMT"
+      },
+    },
+  };
+        
+  
+  courseRef.set().then(function() {
+    result.infoMessage = "User now signed in";
+    result.result = {
+      sessionID: sessionID,
+    }
+    res.send(JSON.stringify(result));
+  }).catch(a =>{
+    result.error = true;
+    result.infoMessage = "Failed to create a session";
+    res.send(JSON.stringify(result));
+  });
+});
+*/
+
+//TODO: check sessionID
 app.post('/login', (req, res) => {  
   const values = req.body;
   let result = {
@@ -82,6 +180,145 @@ app.post('/login', (req, res) => {
   }
 });
 
+app.get('/courses/:courseID/lectures/:lectureID', (req, res) => {  
+  const courseID = req.params.courseID;
+  const lectureID = req.params.lectureID;
+  let result = {
+    error: false,
+  }
+  const lectureRef = db.collection("courses").doc(courseID).collection("lectures").doc(lectureID);
+  lectureRef.get()
+    .then(function(doc) {
+      if (doc.exists){
+        result.result = doc.data();
+        res.send(JSON.stringify(result));
+      } else {
+        result.error = true;
+        result.infoMessage = "Lecture doesnt exists";
+        res.send(JSON.stringify(result));
+      }
+    }).catch(a =>{
+      result.error = true;
+      result.infoMessage = "Failed to get the course";
+      res.send(JSON.stringify(result));
+    });
+});
+
+app.get('/schools', (req, res) => {  
+  let result = {
+    error: false,
+  }
+  const schoolRef = db.collection("schools");
+  schoolRef.get()
+    .then(function(doc) {
+      var returnArr = [];
+      querySnapshot.forEach(function(doc) {
+          returnArr.push(doc.data());
+      });
+      return returnArr;
+    }).then(function(array) {
+      result.result = array;
+      res.send(JSON.stringify(result));
+    }).catch(a =>{
+      result.error = true;
+      result.infoMessage = "Failed to get the course";
+      res.send(JSON.stringify(result));
+    });
+});
+
+app.get('/schools/:schoolID/:schoolName', (req, res) => {  
+  const schoolID = req.params.schoolID;
+  const schoolName = req.params.schoolName;
+  let result = {
+    error: false,
+  }
+  const schoolRef = db.collection("schools").doc(schoolID);
+  schoolRef.set({
+    id: schoolID,
+    name: schoolName,
+  }).then(function() {
+    result.infoMessage = "Created school";
+    res.send(JSON.stringify(result));
+  }).catch(a =>{
+    result.error = true;
+    result.infoMessage = "Failed to create a school";
+    res.send(JSON.stringify(result));
+  });
+});
+
+app.get('/schools/:schoolID/courses', (req, res) => {  
+  const courseID = req.params.courseID;
+  const lectureID = req.params.lectureID;
+  let result = {
+    error: false,
+  }
+  const lectureRef = db.collection("courses").doc(courseID).collection("lectures").doc(lectureID);
+  lectureRef.get()
+    .then(function(doc) {
+      if (doc.exists){
+        result.result = doc.data();
+        res.send(JSON.stringify(result));
+      } else {
+        result.error = true;
+        result.infoMessage = "Lecture doesnt exists";
+        res.send(JSON.stringify(result));
+      }
+    }).catch(a =>{
+      result.error = true;
+      result.infoMessage = "Failed to get the course";
+      res.send(JSON.stringify(result));
+    });
+});
+
+app.get('/courseList/:schoolID/:courseID/:courseHash', (req, res) => {  
+  const courseID = req.params.courseID;
+  const courseHash = req.params.courseHash;
+  let result = {
+    error: false,
+  }
+  const lectureRef = db.collection("courses").doc(courseID).collection("lectures").doc(lectureID);
+  lectureRef.get()
+    .then(function(doc) {
+      if (doc.exists){
+        result.result = doc.data();
+        res.send(JSON.stringify(result));
+      } else {
+        result.error = true;
+        result.infoMessage = "Lecture doesnt exists";
+        res.send(JSON.stringify(result));
+      }
+    }).catch(a =>{
+      result.error = true;
+      result.infoMessage = "Failed to get the course";
+      res.send(JSON.stringify(result));
+    });
+});
+
+
+app.get('/courses/:courseID', (req, res) => {  
+  const courseID = req.params.courseID;
+  let result = {
+    error: false,
+  }
+  const courseRef = db.collection("courses").doc(courseID);
+  courseRef.get()
+    .then(function(doc) {
+      if (doc.exists){
+        result.result = doc.data();
+        res.send(JSON.stringify(result));
+      } else {
+        result.error = true;
+        result.infoMessage = "Course doesnt exists";
+        res.send(JSON.stringify(result));
+      }
+    }).catch(a =>{
+      result.error = true;
+      result.infoMessage = "Failed to get the course";
+      res.send(JSON.stringify(result));
+    });
+});
+
+
 app.get('/verify/:email/:tokenID', (req, res) => {
   const email = req.params.email;
   const tokenID = req.params.tokenID;
@@ -118,7 +355,7 @@ app.post('/signup', (req, res) => {
   let result = {
     error: false,
   }
-  if (!values.email) { //verify email
+  if (!values.email && values.email.match(/^([a-zA-Z0-9]*)@kent.ac.uk$/)) { //verify email
     result.error = true;
     result.infoMessage = "Please use a valid email";   res.send(JSON.stringify(result));
   } else if (!values.password) { //verify password
