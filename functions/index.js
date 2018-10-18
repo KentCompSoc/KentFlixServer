@@ -155,7 +155,7 @@ app.post('/login', (req, res) => {
         const sessionID = crypto.pbkdf2Sync(values.email, data.salt, 10000, 512, 'sha512').toString('hex');
         
         const sessionRef = db.collection("sessions").doc(sessionID);
-        userRef.set({userID: doc.id})
+        sessionRef.set({userID: doc.id})
             .then(function() {
               result.infoMessage = "User now signed in";
               result.result = {
