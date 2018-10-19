@@ -38,7 +38,9 @@ NOTE: Will change to not be within the API itself
 POST: https://kentflix-7f510.firebaseapp.com/api/v1/feed/:courseID/update
 
 PARAMETERS: courseID would be CO320
+
 BODY: Would be the JSON responce from the Panopto url
+
 RETURNS: {error: true, responce: PROCESSED_JSON}
 
 ### Get infomation on course
@@ -46,6 +48,7 @@ RETURNS: {error: true, responce: PROCESSED_JSON}
 GET: https://kentflix-7f510.firebaseapp.com/api/v1/courses/:courseID
 
 PARAMETERS: courseID would be CO320
+
 RETURNS: {error: true, responce: COURSE_INFOMATION}
 
 ### Get infomation on lecture within course
@@ -53,6 +56,7 @@ RETURNS: {error: true, responce: COURSE_INFOMATION}
 GET: https://kentflix-7f510.firebaseapp.com/api/v1/courses/:courseID/lectures/:lectureID
 
 PARAMETERS: courseID would be CO320 and lectureID would be the course code on /v1/courses/:courseID api
+
 RETURNS: {error: true, responce: LECTURE_INFOMATION}
 
 ### Get schools
@@ -64,5 +68,7 @@ RETURNS: {error: true, responce: COURSE_INFOMATION}
 ### Add school
 
 POST: https://kentflix-7f510.firebaseapp.com/api/v1/schools/:schoolID/:schoolName
+
 PARAMETERS: schoolID would be short hand for the school (SoC) and schoolName would be the name of the school (School of Computing)
+
 RETURNS: {error: false, infoMessage: "School Created"}
