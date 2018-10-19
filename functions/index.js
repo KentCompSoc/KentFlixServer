@@ -42,7 +42,7 @@ app.post('/me', (req, res) => {
 
 app.post('/feed/:courseID/update', (req, res) => {
   const courseID = req.params.courseID;
-  const json = req.body.feedJSON;
+  const json = req.body;
     let result = {};
     if (err) {
       result.error = true;
