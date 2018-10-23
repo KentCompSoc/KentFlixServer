@@ -199,7 +199,7 @@ app.get('/courses/:courseID/lectures/:lectureID', (req, res) => {
       }
     }).catch(a =>{
       result.error = true;
-      result.infoMessage = "Failed to get the course";
+      result.infoMessage = "Failed to get the lecture";
       res.send(JSON.stringify(result));
     });
 });
@@ -221,7 +221,7 @@ app.get('/schools', (req, res) => {
       res.send(JSON.stringify(result));
     }).catch(a =>{
       result.error = true;
-      result.infoMessage = "Failed to get the course";
+      result.infoMessage = "Failed to get the schools";
       res.send(JSON.stringify(result));
     });
 });
@@ -252,6 +252,12 @@ app.get('/schools/:schoolID/courses', (req, res) => {
   let result = {
     error: false,
   }
+  
+   result.error = true;
+      result.infoMessage = "Not yet available";
+      res.send(JSON.stringify(result));
+  
+  //TODO : 
   const lectureRef = db.collection("courses").doc(courseID).collection("lectures").doc(lectureID);
   lectureRef.get()
     .then(function(doc) {
@@ -260,12 +266,12 @@ app.get('/schools/:schoolID/courses', (req, res) => {
         res.send(JSON.stringify(result));
       } else {
         result.error = true;
-        result.infoMessage = "Lecture doesnt exists";
+        result.infoMessage = "Could not find courses exists";
         res.send(JSON.stringify(result));
       }
     }).catch(a =>{
       result.error = true;
-      result.infoMessage = "Failed to get the course";
+      result.infoMessage = "Failed to get courses";
       res.send(JSON.stringify(result));
     });
 });
