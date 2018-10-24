@@ -5,9 +5,10 @@ const admin = require('firebase-admin');
 const bodyParser = require("body-parser");
 const crypto = require('crypto');
 const request = require('request');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const FirestoreStore = require('firestore-store')(session);
 
-
-const app1 = express();
 admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
 const settings = {timestampsInSnapshots: true};
@@ -25,6 +26,7 @@ const mailTransport = nodemailer.createTransport({
 });
 
 main.use('/api/v1', app);
+
 main.use(bodyParser.json());
 main.use(bodyParser.urlencoded({ extended: false }));
 app.use(function(req, res, next) {
@@ -32,6 +34,28 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+
+app.use(cookieParser());
+app.use(session({
+    key: 'session_id',
+    secret: 'somerandonstuffs',
+    resave: true,
+    saveUninitialized: false,
+    cookie: {
+        expires: 600000
+    },
+    store:  new FirestoreStore({
+        database: db
+    }),
+}));
+
+var sessionChecker = (req, res, next) => {
+    if (req.session.user && req.cookies.session_id) {
+      next();
+    } else {
+      res.status(400).send("Error");
+    }    
+};
 
 app.post('/me', (req, res) => {
   result.error = true;
@@ -132,52 +156,98 @@ app.post('/feed/:courseID/update', (req, res) => {
 });
 */
 
-//TODO: check sessionID
 app.post('/login', (req, res) => {  
   const values = req.body;
-  let result = {
-    error: false,
-  }
   if (!values.email) { //verify email
-    result.error = true;
-    result.infoMessage = "Please use a valid email";
-    res.send(JSON.stringify(result));
+    res.status(400).send("Please use a valid email");
   } else if (!values.password) { //verify password
-    result.error = true;
-    result.infoMessage = "Please use a valid password";
-    res.send(JSON.stringify(result));
+    res.status(400).send("Please use a valid password");
   } else {
     var userRef = db.collection("users").doc(values.email);
     userRef.get().then(doc => {
-      const data = doc.data();
-      const hash = crypto.pbkdf2Sync(values.password, data.salt, 10000, 512, 'sha512').toString('hex');
-      if (data.hash === hash) {
-        const sessionID = crypto.pbkdf2Sync(values.email, data.salt, 10000, 512, 'sha512').toString('hex');
-        
-        const sessionRef = db.collection("sessions").doc(sessionID);
-        sessionRef.set({userID: doc.id})
-            .then(function() {
-              result.infoMessage = "User now signed in";
-              result.result = {
-                sessionID: sessionID,
-              }
-              res.send(JSON.stringify(result));
-            }).catch(a =>{
-              result.error = true;
-              result.infoMessage = "Failed to create a session";
-              res.send(JSON.stringify(result));
-            });
+      if (!doc.exists) {
+        res.status(400).send("No user with that email");
       } else {
-        result.error = true;
-        result.infoMessage = "Invalid Password";
-        res.send(JSON.stringify(result));
+        const data = doc.data();
+        if (!data.verified) {
+          res.status(400).send("You have not verified, check your email");
+        } else {
+          const hash = crypto.pbkdf2Sync(values.password, data.salt, 10000, 512, 'sha512').toString('hex');
+          if (data.hash === hash) {  
+            req.session.user = {
+              userID: doc.id,
+            };
+            res.status(200).send("Now loged in");
+          } else {
+            res.status(400).send("Invalid password");
+          }
+        }
       }
     }).catch(a =>{
-      result.error = true;
-      result.infoMessage = "Failed to login user";
-      res.send(JSON.stringify(result));
+      res.status(400).send("Failed to log user in");
     });
   }
+});
+
+app.post('/signup', (req, res) => {
+  const values = req.body;
+  if (!values.email && values.email.match(/^([a-zA-Z0-9]*)@kent.ac.uk$/)) { //verify email
+    res.status(400).send("Please use a valid email");
+  } else if (!values.password) { //verify password
+    res.status(400).send("Please use a valid password");
+  } else {
+    const userRef = db.collection("users").doc(values.email);
+    userRef.get()
+      .then((docSnapshot) => {
+        if (docSnapshot.exists) {
+           res.status(400).send("This email has already been used");
+        } else {
+          const salt = crypto.randomBytes(16).toString('hex');
+          const hash = crypto.pbkdf2Sync(values.password, salt, 10000, 512, 'sha512').toString('hex');
+          const userObj = {
+            email: values.email,
+            hash: hash,
+            salt: salt,
+          };
+          userRef.set(userObj)
+            .then(function() {
+              res.status(200).send("Verify you account by checking your emails");
+            })
+            .catch(function(error) {
+              res.status(400).send("Failed to create user");
+            });
+        }
+    });
+  }
+});
+
+app.get('/verify/:email/:tokenID', (req, res) => {
+  const email = req.params.email;
+  const tokenID = req.params.tokenID;
+  
+  const userRef = db.collection("users").doc(email);
+    
+  userRef.get().then((doc) => {
+    if (doc.exists) {
+      const user = doc.data();
+      if (user.verified){
+        res.send("You have already been verified");
+      } else if (user.token == tokenID) {
+        userRef.update({
+          verified: true
+        }).then(function() {
+          res.send("User has been verified, you can now log into the app");
+        })
+        .catch(function(error) {
+          res.send("Failed to verify this user");
+        });
+      } else {
+        res.send("Incorrect Token");
+      }
+    }
+  }).catch(function(error) {
+    res.send("Failed to find a new user by that email");
+  });
 });
 
 app.get('/courses/:courseID/lectures/:lectureID', (req, res) => {  
@@ -204,13 +274,13 @@ app.get('/courses/:courseID/lectures/:lectureID', (req, res) => {
     });
 });
 
-app.get('/schools', (req, res) => {  
+app.get('/schools', sessionChecker, (req, res) => {  
   let result = {
     error: false,
   }
   const schoolRef = db.collection("schools");
   schoolRef.get()
-    .then(function(doc) {
+    .then(function(querySnapshot) {
       var returnArr = [];
       querySnapshot.forEach(function(doc) {
           returnArr.push(doc.data());
@@ -219,14 +289,15 @@ app.get('/schools', (req, res) => {
     }).then(function(array) {
       result.result = array;
       res.send(JSON.stringify(result));
-    }).catch(a =>{
+    }).catch(error =>{
       result.error = true;
-      result.infoMessage = "Failed to get the schools";
-      res.send(JSON.stringify(result));
+      result.infoMessage = "Failed to get schools";
+      result.techinal = error.message;
+      res.status(400).send(JSON.stringify(result));
     });
 });
 
-app.get('/schools/:schoolID/:schoolName', (req, res) => {  
+app.post('/schools/add/:schoolID/:schoolName', (req, res) => {
   const schoolID = req.params.schoolID;
   const schoolName = req.params.schoolName;
   let result = {
@@ -252,11 +323,11 @@ app.get('/schools/:schoolID/courses', (req, res) => {
   let result = {
     error: false,
   }
-  
-   result.error = true;
-      result.infoMessage = "Not yet available";
-      res.send(JSON.stringify(result));
-  
+
+  result.error = true;
+  result.infoMessage = "Not yet available";
+  res.send(JSON.stringify(result));
+
   //TODO : 
   const lectureRef = db.collection("courses").doc(courseID).collection("lectures").doc(lectureID);
   lectureRef.get()
@@ -322,80 +393,6 @@ app.get('/courses/:courseID', (req, res) => {
       result.infoMessage = "Failed to get the course";
       res.send(JSON.stringify(result));
     });
-});
-
-
-app.get('/verify/:email/:tokenID', (req, res) => {
-  const email = req.params.email;
-  const tokenID = req.params.tokenID;
-  
-  const userRef = db.collection("users").doc(email);
-    
-  userRef.get()
-    .then((doc) => {
-      if (doc.exists) {
-        const user = doc.data();
-        if (user.verified){
-          res.send("You have already been verified");
-        } else if (user.token == tokenID) {
-          userRef.update({
-            verified: true
-          })
-            .then(function() {
-              res.send("User has been verified, you can now log into the app");
-            })
-            .catch(function(error) {
-              res.send("Failed to verify this user");
-            });
-        } else {
-          res.send("Incorrect Token");
-        }
-      }
-    }).catch(function(error) {
-      res.send("Failed to find a new user by that email");
-    });
-});
-
-app.post('/signup', (req, res) => {
-  const values = req.body;
-  let result = {
-    error: false,
-  }
-  if (!values.email && values.email.match(/^([a-zA-Z0-9]*)@kent.ac.uk$/)) { //verify email
-    result.error = true;
-    result.infoMessage = "Please use a valid email";   res.send(JSON.stringify(result));
-  } else if (!values.password) { //verify password
-    result.error = true;
-    result.infoMessage = "Please use a valid password";
-    res.send(JSON.stringify(result));
-  } else {
-    const userRef = db.collection("users").doc(values.email);
-    
-    userRef.get()
-      .then((docSnapshot) => {
-        if (docSnapshot.exists) {
-          result.infoMessage = "This email has already been used";
-          res.send(JSON.stringify(result));
-        } else {
-          const salt = crypto.randomBytes(16).toString('hex');
-          const hash = crypto.pbkdf2Sync(values.password, salt, 10000, 512, 'sha512').toString('hex');
-          const userObj = {
-            email: values.email,
-            hash: hash,
-            salt: salt,
-          };
-          userRef.set(userObj)
-            .then(function() {
-              result.infoMessage = "User has been created";
-              res.send(JSON.stringify(result));
-            })
-            .catch(function(error) {
-              result.infoMessage = "Failed to create user";
-              res.send(JSON.stringify(result));
-            });
-        }
-    });
-  }
 });
 
 main.use('/api/v1', app);
