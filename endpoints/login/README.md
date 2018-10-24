@@ -1,39 +1,43 @@
-# Comment Resources
+# Login as User
 
-    POST login
+    POST /login
 
 ## Description
-Creates a user for the platform so they will be able to use and access the lecture recordings. Before they must verify using the email verify.
+An existing user for the platform will be able to return to access the system using their email and password. So they will be able to use and access the lecture recordings. Before they must verify using the email verify.
 
 ***
 
 ## Parameters
-- **body.email** _(required)_ — Email for user @kent.ac.uk.
+- **body.email** _(required)_ — Email for user @kent.ac.uk
+- **body.password** _(required)_ — No restriction on length yet
 
 ***
 
 ## Return format
-A JSON object with key "status" and value of 200, a key "message" with value of "Successfully added a comment.", and a key of "comment" including the comment model of the comment that was created.
+A JSON object with key "status" and value of 200, a key "message" with value of "Successfully logged in.", and a key of "user" (userID) including the user model of the comment that was created.
 
 ***
 
 ## Errors
 All known errors cause the resource to return HTTP error code header together with a JSON array containing at least 'status' and 'error' keys describing the source of error.
 
-- **400 Bad Request** — The body of the comment was not specified.
-- **404 Not Found** — The specified comment was not found.
+- **400 Bad Request** — The body of the user was not specified or in bad format.
+- **404 Not Found** — The specified user was not found.
 
 ***
 
 ## Example
 **Request**
 
-    POST v1/comments/73249443/comments
+    POST v1/login
 
 **Body**
-
-    body=Nice+color+and+composition.
-
+``` json
+{
+  "email" : "abc123@kent.ac.uk",
+  "password" : "examplar_password",
+}
+```
 **Result**
 ``` json
 {
