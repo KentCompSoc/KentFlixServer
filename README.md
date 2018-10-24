@@ -53,13 +53,13 @@ EXAMPLE RETURN:
 
 NOTE: Will change to not be within the API itself
 
-### Get schools 
+### Get Schools 
 
 <code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools
 
 RETURNS: {error: false, responce: COURSE_INFOMATION}
 
-### Add school
+### Add School
 
 <code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools/:schoolID/:schoolName
 
@@ -67,7 +67,7 @@ PARAMETERS: schoolID would be short hand for the school (SoC) and schoolName wou
 
 RETURNS: {error: false, infoMessage: "School Created"}
 
-### Update course content
+### Update Course Content
 
 <code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/feed/:courseID/update
 
@@ -77,7 +77,7 @@ BODY: Would be the JSON responce from the Panopto url
 
 RETURNS: {error: false, responce: PROCESSED_JSON}
 
-### Get course
+### Get Course
 
 <code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID
 
@@ -85,7 +85,7 @@ PARAMETERS: courseID would be CO320
 
 RETURNS: {error: false, responce: COURSE_INFOMATION}
 
-### Get lecture
+### Get Lecture
 
 <code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID/lectures/:lectureID
 
