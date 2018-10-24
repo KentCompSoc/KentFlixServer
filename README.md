@@ -53,7 +53,7 @@ EXAMPLE RETURN:
 
 NOTE: Will change to not be within the API itself
 
-### Get schools - Status :exclamation: (Curently disabled for authentication growth) 
+### Get schools 
 
 <code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools
 
