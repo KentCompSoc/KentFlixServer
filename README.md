@@ -34,13 +34,13 @@ Then deploy the server locally:
 
 ### Sign Up
 
-<code>POST</code>: https://kentflix-7f510.firebaseapp.com/api/v1/signup
+<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/signup
 
 VALUES: email, password
 
 ### Login
 
-<code>POST</code>: https://kentflix-7f510.firebaseapp.com/api/v1/login
+<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/login
 
 VALUES: email, password
 
@@ -50,19 +50,19 @@ EXAMPLE RETURN:
 
 ### Verify Account
 
-<code>GET</code>: https://kentflix-7f510.firebaseapp.com/api/v1/verify/:email/:token
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/verify/:email/:token
 
 NOTE: Will change to not be within the API itself
 
 ### Get schools - Status :exclamation: (Curently disabled for authentication growth) 
 
-<code>GET</code>: https://kentflix-7f510.firebaseapp.com/api/v1/schools
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/schools
 
 RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Add school
 
-<code>POST</code>: https://kentflix-7f510.firebaseapp.com/api/v1/schools/:schoolID/:schoolName
+<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/schools/:schoolID/:schoolName
 
 PARAMETERS: schoolID would be short hand for the school (SoC) and schoolName would be the name of the school (School of Computing)
 
@@ -70,7 +70,7 @@ RETURNS: {error: false, infoMessage: "School Created"}
 
 ### Update course content
 
-<code>POST</code>: https://kentflix-7f510.firebaseapp.com/api/v1/feed/:courseID/update
+<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/feed/:courseID/update
 
 PARAMETERS: courseID would be CO320
 
@@ -80,7 +80,7 @@ RETURNS: {error: false, responce: PROCESSED_JSON}
 
 ### Get course
 
-<code>GET</code>: https://kentflix-7f510.firebaseapp.com/api/v1/courses/:courseID
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/courses/:courseID
 
 PARAMETERS: courseID would be CO320
 
@@ -88,7 +88,7 @@ RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Get lecture
 
-<code>GET</code>: https://kentflix-7f510.firebaseapp.com/api/v1/courses/:courseID/lectures/:lectureID
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/courses/:courseID/lectures/:lectureID
 
 PARAMETERS: courseID would be CO320 and lectureID would be the course code on /v1/courses/:courseID api
 
