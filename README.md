@@ -19,7 +19,7 @@ Then deploy the server locally:
 
 #### Schools
 
-- **[<code>GET</code> schools](#get-schools)**
+- **[:exclamation: <code>GET</code> schools](#get-schools)**
 - **[<code>POST</code> schools/:schoolID/:schoolName](#add-school)**
 
 #### Courses
@@ -54,7 +54,7 @@ EXAMPLE RETURN:
 
 NOTE: Will change to not be within the API itself
 
-### Get schools
+### Get schools - Status :exclamation: (Curently disabled for authentication growth) 
 
 <code>GET</code>: https://kentflix-7f510.firebaseapp.com/api/v1/schools
 
