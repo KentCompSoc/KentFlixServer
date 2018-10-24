@@ -8,7 +8,7 @@ An existing user for the platform will be able to return to access the system us
 ***
 
 ## Parameters
-- **body.email** _(required)_ — Email for user @kent.ac.uk
+- **body.email** _(required)_ — Email for user and must be a @kent.ac.uk email
 - **body.password** _(required)_ — No restriction on length yet
 
 ***

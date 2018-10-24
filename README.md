@@ -13,21 +13,20 @@ Then deploy the server locally:
 
 #### Auth
 
-- **[<code>POST</code> signup](#sign-up)**
-- **[<code>POST</code> login](#login)**
-- **[<code>GET</code> verify/:email/:token](#verify-account)**
+- **[<code>POST</code> /signup](#sign-up)**
+- **[<code>POST</code> /login](#login)**
+- **[<code>GET</code> /verify/:email/:token](#verify-account)**
 
 #### Schools
 
-- **[:exclamation: <code>GET</code> schools](#get-schools)**
-- **[<code>POST</code> schools/:schoolID/:schoolName](#add-school)**
+- **[<code>GET</code> /:sessionID/schools](#get-schools)**
+- **[<code>POST</code> /:sessionID/schools/:schoolID/:schoolName](#add-school)**
 
 #### Courses
 
-- **[<code>POST</code> feed/:courseID/update](#update-course-content)**
-- **[<code>GET</code> courses/:courseID](get-course)**
-- **[<code>GET</code> courses/:courseID/lectures/:lectureID](get-lecture)**
-
+- **[<code>POST</code> /:sessionID/feed/:courseID/update](#update-course-content)**
+- **[<code>GET</code> /:sessionID/courses/:courseID](get-course)**
+- **[<code>GET</code> /:sessionID/courses/:courseID/lectures/:lectureID](get-lecture)**
 
 
 ## Usage
@@ -56,13 +55,13 @@ NOTE: Will change to not be within the API itself
 
 ### Get schools - Status :exclamation: (Curently disabled for authentication growth) 
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/schools
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools
 
 RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Add school
 
-<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/schools/:schoolID/:schoolName
+<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools/:schoolID/:schoolName
 
 PARAMETERS: schoolID would be short hand for the school (SoC) and schoolName would be the name of the school (School of Computing)
 
@@ -70,7 +69,7 @@ RETURNS: {error: false, infoMessage: "School Created"}
 
 ### Update course content
 
-<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/feed/:courseID/update
+<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/feed/:courseID/update
 
 PARAMETERS: courseID would be CO320
 
@@ -80,7 +79,7 @@ RETURNS: {error: false, responce: PROCESSED_JSON}
 
 ### Get course
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/courses/:courseID
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID
 
 PARAMETERS: courseID would be CO320
 
@@ -88,7 +87,7 @@ RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Get lecture
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/courses/:courseID/lectures/:lectureID
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID/lectures/:lectureID
 
 PARAMETERS: courseID would be CO320 and lectureID would be the course code on /v1/courses/:courseID api
 
