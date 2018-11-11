@@ -17,16 +17,22 @@ Then deploy the server locally:
 - **[<code>POST</code> /login](#login)**
 - **[<code>GET</code> /verify/:email/:token](#verify-account)**
 
+#### User
+
+- **[<code>GET</code> /:sessionID](#get-session)**
+
 #### Schools
 
 - **[<code>GET</code> /:sessionID/schools](#get-schools)**
-- **[<code>POST</code> /:sessionID/schools/:schoolID/:schoolName](#add-school)**
+- **[<code>POST</code> /:sessionID/schools/add](#add-school)**
 
 #### Courses
 
 - **[<code>POST</code> /:sessionID/feed/:courseID/update](#update-course-content)**
+- **[<code>GET</code> :sessionID/schools/:schoolID/courses](get-courses)**
 - **[<code>GET</code> /:sessionID/courses/:courseID](get-course)**
-- **[<code>GET</code> /:sessionID/courses/:courseID/lectures/:lectureID](get-lecture)**
+- **[<code>GET</code> /:sessionID/courses/:courseID/:year/lectures](get-lectures)**
+- **[<code>GET</code> /:sessionID/lectures/:lectureID](get-lecture)**
 
 
 ## Usage
@@ -35,13 +41,13 @@ Then deploy the server locally:
 
 <code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/signup
 
-VALUES: email, password
+BODY: email, password
 
 ### Login
 
 <code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/login
 
-VALUES: email, password
+BODY: email, password
 
 EXAMPLE RETURN:
 {error: false, infoMessage: "User now signed in"}
@@ -53,6 +59,13 @@ EXAMPLE RETURN:
 
 NOTE: Will change to not be within the API itself
 
+
+### Get Session
+
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID
+
+RETURNS: {error: false, responce: COURSE_INFOMATION}
+
 ### Get Schools 
 
 <code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools
@@ -61,9 +74,9 @@ RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Add School
 
-<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools/:schoolID/:schoolName
+<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools/add
 
-PARAMETERS: schoolID would be short hand for the school (SoC) and schoolName would be the name of the school (School of Computing)
+BODY: schoolID would be short hand for the school (SoC) and schoolName would be the name of the school (School of Computing)
 
 RETURNS: {error: false, infoMessage: "School Created"}
 
@@ -77,6 +90,14 @@ BODY: Would be the JSON responce from the Panopto url
 
 RETURNS: {error: false, responce: PROCESSED_JSON}
 
+### Get Courses
+
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools/:schoolID/courses
+
+PARAMETERS: schoolID would be SoC
+
+RETURNS: {error: false, responce: COURSE_INFOMATION}
+
 ### Get Course
 
 <code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID
@@ -85,10 +106,18 @@ PARAMETERS: courseID would be CO320
 
 RETURNS: {error: false, responce: COURSE_INFOMATION}
 
+### Get Lectures
+
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID/:year/lectures
+
+PARAMETERS: courseID would be CO320, year would be 2017 or 2018
+
+RETURNS: {error: false, responce: COURSE_INFOMATION}
+
 ### Get Lecture
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID/lectures/:lectureID
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/lectures/:lectureID
 
-PARAMETERS: courseID would be CO320 and lectureID would be the course code on /v1/courses/:courseID api
+PARAMETERS: lectureID would be the lecture hash from [Get Lectures](#get-lectures)
 
 RETURNS: {error: false, responce: LECTURE_INFOMATION}
