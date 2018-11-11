@@ -28,8 +28,7 @@ Then deploy the server locally:
 
 #### Courses
 
-- **[<code>POST</code> /:sessionID/feed/:courseID/update](#update-course-content)**
-- **[<code>GET</code> :sessionID/schools/:schoolID/courses](get-courses)**
+- **[<code>GET</code> /:sessionID/schools/:schoolID/courses](get-courses)**
 - **[<code>GET</code> /:sessionID/courses/:courseID](get-course)**
 - **[<code>GET</code> /:sessionID/courses/:courseID/:year/lectures](get-lectures)**
 - **[<code>GET</code> /:sessionID/lectures/:lectureID](get-lecture)**
@@ -79,16 +78,6 @@ RETURNS: {error: false, responce: COURSE_INFOMATION}
 BODY: schoolID would be short hand for the school (SoC) and schoolName would be the name of the school (School of Computing)
 
 RETURNS: {error: false, infoMessage: "School Created"}
-
-### Update Course Content
-
-<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/feed/:courseID/update
-
-PARAMETERS: courseID would be CO320
-
-BODY: Would be the JSON responce from the Panopto url
-
-RETURNS: {error: false, responce: PROCESSED_JSON}
 
 ### Get Courses
 
