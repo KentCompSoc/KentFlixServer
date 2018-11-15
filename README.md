@@ -11,7 +11,7 @@ Then deploy the server locally:
     
 ## Cron Jobs Engine
 
-[See documentation](../appengine/README.md)
+[See documentation](https://github.com/KentCompSoc/KentFlixServer/tree/master/appengine)
 
 ## Endpoints
 
