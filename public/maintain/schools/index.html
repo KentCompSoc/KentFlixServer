@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta content="IE=edge" http-equiv="X-UA-Compatible">
+	<meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+	<meta content="" name="description">
+	<meta content="" name="author">
+	<title>KentFlix</title><!-- Bootstrap core CSS-->
+	<link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet"><!-- Custom fonts for this template-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+	<link href="/css/custom.css" rel="stylesheet">
+    <link href="/css/new.css" rel="stylesheet">
+  
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/5.5.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/5.5.3/firebase-auth.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-database.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+</head>
+<body class="sticky-footer bg-dark" id="page-top">
+	<div class="topbar"></div>
+	<div class="content-wrapper">
+		<div class="container"  style="margin-bottom: 75px;">
+			<!-- Breadcrumbs-->
+			<ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/maintain">Maintain</a></li>
+				<li class="breadcrumb-item active">Schools</li>
+			</ol>
+            
+            <div class="row">
+                <div class="col-md-4 col-lg-4">
+                    <div class="panel embed-responsive embed-responsive-16by9">
+                      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/9jAspW6p27M?rel=0" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div class="col-md-8 col-lg-8">
+                    <div class="panel">
+                        <p class="h4">Add a School</p>
+                        <p class="lead">Add a school that is not currenly on KentFlix.</p>
+                        <div class="form-group">
+                            <label for="schoolID">School Code</label>
+                            <input type="text" class="form-control" id="schoolID" aria-describedby="schoolIDHelp" placeholder="Enter School Code" autocomplete="off">
+                            <small id="schoolIDHelp" class="form-text text-muted">This would the short hand for your school, for example School of Computing is SoC.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="schoolName">School Name</label>
+                            <input type="text" class="form-control" id="schoolName" placeholder="School Name">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                    <div class="panel">
+                        <p class="h4">Edit an Existing School</p>
+                        <p class="lead">Find a school below and then edit it's details.</p>
+                        <div class="form-group">
+                            <label for="schoolID">Select an existing school</label>
+                            <select class="form-control" id="exampleFormControlSelect1">
+                              <option>SoC</option>
+                              <option>SoL</option>
+                              <option>SoE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="schoolID">School Code</label>
+                            <input type="text" class="form-control" id="schoolID" aria-describedby="schoolIDHelp" placeholder="Enter School Code" autocomplete="off">
+                            <small id="schoolIDHelp" class="form-text text-muted">This would the short hand for your school, for example School of Computing is SoC.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="schoolName">School Name</label>
+                            <input type="text" class="form-control" id="schoolName" placeholder="School Name">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </div>
+            </div>
+		</div>
+		<div class="footer"></div>
+      
+		<script src="/vendor/jquery/jquery.min.js"></script> 
+		<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		<script src="/vendor/jquery-easing/jquery.easing.min.js"></script>
+        <script src="/js/main.js"></script>
+	</div>
+</body>
+</html>

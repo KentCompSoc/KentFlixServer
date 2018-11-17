@@ -1,0 +1,83 @@
+bottomRight {
+    display: block;
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    z-index: 5;
+}
+
+.panel {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    padding: .75rem 1rem;
+    margin-bottom: 1rem;
+    list-style: none;
+    background-color: #e9ecef;
+    border-radius: .25rem;
+}
+.panel p {
+    display: block;
+    width: 100%;
+}
+
+.new-video {
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px;
+    width: 350px;
+    z-index: 2;
+}
+
+.img-top {
+    height: auto;
+    width: 100%;
+    height: 56%;
+    display: block;
+    border-radius: .25rem;
+    object-fit: cover;
+    margin-bottom: .5rem;
+}
+
+iframe {
+    border-radius: .25rem;
+}
+
+.toggle-handle {
+    background-color: white;
+}
+
+  .toggle.ios, .toggle-on.ios, .toggle-off.ios { border-radius: 20px; }
+  .toggle.ios .toggle-handle { border-radius: 20px; }
+
+.panel > div:not(.right) {
+    width: 100%;
+}
+
+.right{
+    position: absolute;
+    top: 10px;
+    right: 25px;
+    width: 60px !important;
+    display: block;
+}
+
+
+a.panel {
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+a.panel:hover {
+  background-color: #bcbcbc !important;
+}
+
+
+.breadcrumb-item a {
+  text-decoration: underline!important;
+  color: inherit !important;
+}

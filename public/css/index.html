@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <link href="dropdown.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg" crossorigin="anonymous">
+    <style>
+        body {
+            display: block;
+            margin: 0px;
+        }
+    </style>
+    
+    <navtitle> 
+        <div class="mobile-button button" type="button" aria-label="Go Home"> 
+            <img class="logo-icon" src="/images/HS_Logo.png"> 
+            <img class="logo-name" src="/images/UniPanel_Logo.png" alt="Firebase">
+        </div> 
+        <div class="bar">
+            <div class="setting" id="menu-toggle" type="button" aria-label="Go Home" onclick="document.getElementById('navbar').classList.toggle('hidden');"> 
+                <i class="fas fa-bars"></i>
+            </div> 
+        </div>
+         
+    </navtitle>
+    
+    <navbar id="navbar" class="hidden"> 
+        <navbar-item class="selected">
+            <div class="contents">
+                <i class="fas fa-home"></i>
+                <div class="name">Project Overview</div> 
+            </div>
+        </navbar-item>
+
+        <navbar-menu class="selected">
+            <div class="contents" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="name">Union</div> 
+                <chevron><i class="fas fa-chevron-down"></i></chevron>
+                <div class="description">Societies, Events, Elections, Positions</div>
+            </div>
+            <list>
+                <list-item>
+                    <i class="fas fa-users"></i>
+                    <span class="name">Societies</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="name">Events</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-check"></i>
+                    <span class="name">Elections</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-check"></i>
+                    <span class="name">Positions</span> 
+                </list-item>
+            </list>
+        </navbar-menu>
+        <navbar-menu class="selected">
+            <div class="contents" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="name">School</div> 
+                <chevron><i class="fas fa-chevron-down"></i></chevron>
+                <div class="description">Courses, People, Newsfeed</div>
+            </div>
+            <list>
+                <list-item>
+                    <i class="fas fa-users"></i>
+                    <span class="name">Courses</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-database"></i>
+                    <span class="name">People</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-hdd"></i>
+                    <span class="name">Newsfeed</span> 
+                </list-item>
+            </list>
+        </navbar-menu>
+        <navbar-menu class="selected">
+            <div class="contents" onclick="this.parentElement.classList.toggle('expanded');">
+                <div class="name">Essentials</div> 
+                <chevron><i class="fas fa-chevron-down"></i></chevron>
+                <div class="description">Messaging, Marketplace</div>
+            </div>
+            <list>
+                <list-item>
+                    <i class="fas fa-users"></i>
+                    <span class="name">Messaging</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-database"></i>
+                    <span class="name">Marketplace</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-hdd"></i>
+                    <span class="name">Laundry</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-globe"></i>
+                    <span class="name">Attributes</span> 
+                </list-item>
+                <list-item>
+                    <i class="fas fa-cogs"></i>
+                    <span class="name">Attribution</span> 
+                </list-item>
+            </list>
+        </navbar-menu>
+        <navbar-item class="footer">
+            <div class="contents">
+                <i class="fas fa-cog"></i>
+                <div class="name">Settings</div> 
+            </div>
+        </navbar-item>
+    </navbar>
+</body>
+</html>

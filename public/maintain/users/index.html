@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta content="IE=edge" http-equiv="X-UA-Compatible">
+	<meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+	<meta content="" name="description">
+	<meta content="" name="author">
+	<title>KentFlix</title><!-- Bootstrap core CSS-->
+	<link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet"><!-- Custom fonts for this template-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+	<link href="/css/custom.css" rel="stylesheet">
+    <link href="/css/new.css" rel="stylesheet">
+  
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/5.5.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/5.5.3/firebase-auth.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-database.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+</head>
+<body class="sticky-footer bg-dark" id="page-top">
+	<div class="topbar"></div>
+	<div class="content-wrapper">
+		<div class="container"  style="margin-bottom: 75px;">
+			<!-- Breadcrumbs-->
+			<ol class="breadcrumb">
+				<li class="breadcrumb-item active">Maintain</li>
+			</ol>
+            
+            <div class="row">
+                <div class="col-md-4 col-lg-4">
+                    <div class="panel embed-responsive embed-responsive-16by9">
+                      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/9jAspW6p27M?rel=0" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div class="col-md-8 col-lg-8">
+                    <div class="panel">
+                        <p class="h4" data-toggle="collapse" data-target="#addLaundryCollapse" aria-expanded="true" aria-controls="addLaundryCollapse">Add Laundries to your app <span class="badge badge-secondary">New</span></p>
+                        <p class="lead">Use the search below to help you, and tick the ones on you site.</p>
+                        <div id="addLaundryCollapse" class="collapse show">
+                            <div class="input-group mb-3 city-selector-wrapper">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="city">City</label>
+                                </div>
+                                <select class="custom-select city-selector">
+                                    <option selected>Choose...</option>
+                                    <option value="ABERDEEN">Aberdeen</option>
+                                    <option value="Aberystwyth">Aberystwyth</option>
+                                    <option value="Bangor">Bangor</option>
+                                    <option value="Basingstoke">Basingstoke</option>
+                                    <option value="BATH">Bath</option>
+                                    <option value="Bedford">Bedford</option>
+                                    <option value="Birmingham">Birmingham</option>
+                                    <option value="Bolton">Bolton</option>
+                                    <option value="Bournemouth">Bournemouth</option>
+                                    <option value="Bradford">Bradford</option>
+                                    <option value="Brighton">Brighton</option>
+                                    <option value="Bristol">Bristol</option>
+                                    <option value="Buckingham">Buckingham</option>
+                                    <option value="Caerdydd">Caerdydd</option>
+                                    <option value="CAMARTHEN">Camarthen</option>
+                                    <option value="Cambridge">Cambridge</option>
+                                    <option value="Canterbury">Canterbury</option>
+                                    <option value="Cardiff">Cardiff</option>
+                                    <option value="Chelmsford">Chelmsford</option>
+                                    <option value="Cheltenham">Cheltenham</option>
+                                    <option value="Chertsey">Chertsey</option>
+                                    <option value="CHESTER">Chester</option>
+                                    <option value="Chichester">Chichester</option>
+                                    <option value="Colchester">Colchester</option>
+                                    <option value="Coventry">Coventry</option>
+                                    <option value="Cranfield">Cranfield</option>
+                                    <option value="Crewe">Crewe</option>
+                                    <option value="Croydon">Croydon</option>
+                                    <option value="Derby">Derby</option>
+                                    <option value="Dornoch">Dornoch</option>
+                                    <option value="Dublin">Dublin</option>
+                                    <option value="Dundee">Dundee</option>
+                                    <option value="Durham">Durham</option>
+                                    <option value="Edgmond">Edgmond</option>
+                                    <option value="Edinburgh">Edinburgh</option>
+                                    <option value="EGHAM">Egham</option>
+                                    <option value="ELGIN">Elgin</option>
+                                    <option value="Exeter">Exeter</option>
+                                    <option value="Fort William">Fort William</option>
+                                    <option value="Galashiels">Galashiels</option>
+                                    <option value="Glamorgan">Glamorgan</option>
+                                    <option value="Glasgow">Glasgow</option>
+                                    <option value="Gloucester">Gloucester</option>
+                                    <option value="Glouceter">Glouceter</option>
+                                    <option value="Guildford">Guildford</option>
+                                    <option value="High Wycombe">High Wycombe</option>
+                                    <option value="Huddersfield">Huddersfield</option>
+                                    <option value="Hull">Hull</option>
+                                    <option value="Inverness">Inverness</option>
+                                    <option value="KEELE">KEELE</option>
+                                    <option value="Kingston">Kingston</option>
+                                    <option value="Kingston Upon Thames">Kingston Upon Thames</option>
+                                    <option value="LAMPETER">LAMPETER</option>
+                                    <option value="Lancaster">Lancaster</option>
+                                    <option value="Leamington Spa">Leamington Spa</option>
+                                    <option value="Leeds">Leeds</option>
+                                    <option value="Leicester">Leicester</option>
+                                    <option value="Lincoln">Lincoln</option>
+                                    <option value="Liverpool">Liverpool</option>
+                                    <option value="London">London</option>
+                                    <option value="LOUGHBOROUGH">Loughborough</option>
+                                    <option value="LUTON">LUTON</option>
+                                    <option value="Manchester">Manchester</option>
+                                    <option value="Moulton">Moulton</option>
+                                    <option value="New Malden">New Malden</option>
+                                    <option value="Newcastle">Newcastle</option>
+                                    <option value="NORTHAMPTON">Northampton</option>
+                                    <option value="Northumbria">Northumbria</option>
+                                    <option value="Nottingham">Nottingham</option>
+                                    <option value="Ormskirk">Ormskirk</option>
+                                    <option value="Oxford">Oxford</option>
+                                    <option value="PAISLEY">Paisley</option>
+                                    <option value="Penryn">Penryn</option>
+                                    <option value="Plymouth">Plymouth</option>
+                                    <option value="POOLE">Poole</option>
+                                    <option value="Portmouth">Portmouth</option>
+                                    <option value="Portsmouth">Portsmouth</option>
+                                    <option value="Preston">Preston</option>
+                                    <option value="READING">Reading</option>
+                                    <option value="Salford">Salford</option>
+                                    <option value="SHEFFIELD">Sheffield</option>
+                                    <option value="Shrewsbury">Shrewsbury</option>
+                                    <option value="Southampton">Southampton</option>
+                                    <option value="Southend">Southend</option>
+                                    <option value="St Andrews">St Andrews</option>
+                                    <option value="Stoke-on-trent">Stoke-on-trent</option>
+                                    <option value="Stratford Upon Avon">Stratford Upon Avon</option>
+                                    <option value="Sunderland">Sunderland</option>
+                                    <option value="SURBITON">Surbiton</option>
+                                    <option value="Swansea">Swansea</option>
+                                    <option value="Teesside">Teesside</option>
+                                    <option value="TELFORD">Telford</option>
+                                    <option value="Truro">Truro</option>
+                                    <option value="Uxbridge">Uxbridge</option>
+                                    <option value="Walsall">Walsall</option>
+                                    <option value="Warwick">Warwick</option>
+                                    <option value="WEMBLEY">Wembley</option>
+                                    <option value="Winchester">Winchester</option>
+                                    <option value="Wolverhampton">Wolverhampton</option>
+                                    <option value="Worcester">Worcester</option>
+                                    <option value="York">York</option>
+                                </select>
+                            </div>
+                            <div class="input-group mb-3 site-selector-wrapper" style="display: none;">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="site">Site</label>
+                                </div>
+                                <select class="custom-select site-selector"></select>
+                            </div>
+                            <div class="input-group mb-3 building-selector-wrapper" style="display: none;">
+                                <!--<div class="form-check">
+                                    <label>
+                                        <input type="checkbox" name="check" checked> <span class="label-text">Becket Court</span>
+                                    </label>
+                                </div>-->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <p class="h4" data-toggle="collapse" data-target="#viewLaundryCollapse" aria-expanded="true" aria-controls="viewLaundryCollapse">View your Laundries <span class="badge badge-secondary">New</span></p>
+                        <p class="lead">See the current status of your laundries.</p>
+                        <div id="viewLaundryCollapse" class="collapse">
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-secondary active">
+                                    <input type="radio" name="options" id="option1" autocomplete="off" checked> Becket Court
+                                </label>
+                                <label class="btn btn-secondary">
+                                    <input type="radio" name="options" id="option2" autocomplete="off"> Darwin College
+                                </label>
+                                <label class="btn btn-secondary">
+                                    <input type="radio" name="options" id="option3" autocomplete="off"> Darwin College Houses
+                                </label>
+                            </div>
+                            <p class="h3">
+                                Machines:
+                                <span class="badge badge-success">3 Available</span>
+                                <span class="badge badge-danger">3 Used</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <p class="h4" data-toggle="collapse" data-target="#settingsLaundryCollapse" aria-expanded="true" aria-controls="settingsLaundryCollapse">Settings</p>
+                        <div id="settingsLaundryCollapse" class="collapse">
+                            
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <label class="btn btn-secondary active">
+                                    <input type="radio" name="options" id="option1" autocomplete="off" checked> Visibility
+                                </label>
+                                <label class="btn btn-secondary">
+                                    <input type="radio" name="options" id="option2" autocomplete="off"> Pay with app
+                                </label>
+                                <label class="btn btn-secondary">
+                                    <input type="radio" name="options" id="option3" autocomplete="off"> Locked
+                                </label>
+                            </div>
+                            <p class="lead">Change what Students and Vistors can see.</p>
+                            <div class="input-group mb-3">
+                                <label class="lead" for="city">Students: </label>
+                                <input type="checkbox" checked data-toggle="toggle" data-onstyle="success" data-offstyle="danger"  data-style="ios">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="lead" for="city">Alumni: </label>
+                                <input type="checkbox" checked data-toggle="toggle" data-onstyle="success" data-offstyle="danger"  data-style="ios">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="lead" for="city">Staff: </label>
+                                <input type="checkbox" checked data-toggle="toggle" data-onstyle="success" data-offstyle="danger"  data-style="ios">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="lead" for="city">Guests: </label>
+                                <input type="checkbox" checked data-toggle="toggle" data-onstyle="success" data-offstyle="danger"  data-style="ios">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+		</div>
+		<div class="footer"></div>
+      
+		<script src="/vendor/jquery/jquery.min.js"></script> 
+		<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		<script src="/vendor/jquery-easing/jquery.easing.min.js"></script>
+        <script src="/js/main.js"></script>
+	</div>
+</body>
+</html>

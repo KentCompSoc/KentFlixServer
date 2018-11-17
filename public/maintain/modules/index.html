@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta content="IE=edge" http-equiv="X-UA-Compatible">
+	<meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+	<meta content="" name="description">
+	<meta content="" name="author">
+	<title>KentFlix</title><!-- Bootstrap core CSS-->
+	<link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet"><!-- Custom fonts for this template-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+	<link href="/css/custom.css" rel="stylesheet">
+    <link href="/css/new.css" rel="stylesheet">
+  
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/5.5.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/5.5.3/firebase-auth.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-database.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-messaging.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-storage.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+</head>
+<body class="sticky-footer bg-dark" id="page-top">
+	<div class="topbar"></div>
+	<div class="content-wrapper">
+		<div class="container"  style="margin-bottom: 75px;">
+			<!-- Breadcrumbs-->
+			<ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/maintain">Maintain</a></li>
+				<li class="breadcrumb-item active">Modules</li>
+			</ol>
+            
+            <div class="row">
+                <div class="col-md-4 col-lg-4">
+                    <div class="panel embed-responsive embed-responsive-16by9">
+                      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/9jAspW6p27M?rel=0" allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div class="col-md-8 col-lg-8">
+                    <div class="panel">
+                        <p class="h4">Add a Module</p>
+                        <p class="lead">Add a module that is not currenly on KentFlix.</p>
+                        <div class="form-group">
+                            <label for="moduleID">Module Code</label>
+                            <input type="text" class="form-control" id="moduleID" aria-describedby="moduleIDHelp" placeholder="Enter Module ID" autocomplete="off">
+                            <small id="courseIDHelp" class="form-text text-muted">This would the module code like CO320.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="modulelName">Module Name</label>
+                            <input type="text" class="form-control" id="moduleName" placeholder="Module Name" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="moduleHash">Module Hash</label>
+                            <input type="text" class="form-control" id="moduleHash" placeholder="Module Hash" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="moduleHash">Module Hash Year</label>
+                            <select class="form-control" id="moduleSchools">
+                              <option selected>2019</option>
+                              <option>2018</option>
+                              <option>2017</option>
+                            </select>
+                          <small id="courseIDHelp" class="form-text text-muted">This would the year that the achedemic year ends.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="moduleSchools">Module Schools</label>
+                            <select class="form-control" id="moduleSchools" multiple>
+                              <option>G400</option>
+                              <option>G404</option>
+                              <option>G405</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                    <div class="panel">
+                        <p class="h4">Edit an Existing Module</p>
+                        <p class="lead">Find a module below and then edit it's details.</p>
+                        <div class="form-group">
+                            <label for="schoolID">Select an existing module</label>
+                            <select class="form-control" id="exampleFormControlSelect1">
+                              <option>G400</option>
+                              <option>G404</option>
+                              <option>G405</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="modulelName">Module Name</label>
+                            <input type="text" class="form-control" id="moduleName" placeholder="Module Name" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="moduleHash">Module Hash</label>
+                            <input type="text" class="form-control" id="moduleHash" placeholder="Module Hash" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="moduleHash">Module Hash Year</label>
+                            <select class="form-control" id="moduleSchools">
+                              <option selected>2019</option>
+                              <option>2018</option>
+                              <option>2017</option>
+                            </select>
+                          <small id="courseIDHelp" class="form-text text-muted">This would the year that the achedemic year ends.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="moduleSchools">Module Schools</label>
+                            <select class="form-control" id="moduleSchools" multiple>
+                              <option>G400</option>
+                              <option>G404</option>
+                              <option>G405</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                    <div class="panel">
+                        <p class="h4">Remove an Existing Module</p>
+                        <p class="lead">Find a module below to remove.</p>
+                        <div class="form-group">
+                            <label for="schoolID">Select an existing module</label>
+                            <select class="form-control" id="exampleFormControlSelect1">
+                              <option>CO320</option>
+                              <option>CO510</option>
+                              <option>CO520</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </div>
+            </div>
+		</div>
+		<div class="footer"></div>
+      
+		<script src="/vendor/jquery/jquery.min.js"></script> 
+		<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+		<script src="/vendor/jquery-easing/jquery.easing.min.js"></script>
+        <script src="/js/main.js"></script>
+	</div>
+</body>
+</html>

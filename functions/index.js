@@ -6,8 +6,10 @@ const bodyParser = require("body-parser");
 const crypto = require('crypto');
 const requestPromise = require('request-promise');
 const xml2js = require('xml2js-es6-promise');
+const Sentry = require('@sentry/node');
 
 admin.initializeApp(functions.config().firebase);
+Sentry.init({ dsn: 'https://31176562c6ef489699d72f797c8f315f@sentry.io/1324602' });
 const db = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 db.settings(settings);
@@ -50,6 +52,15 @@ app.use(function(req, res, next) {
   next();
 });
 
+
+app.use(function(req, res, next) {
+  console.log(req.url);
+  next();
+});
+
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.errorHandler());
+
 function getCurrentYear() {
   let yearDate = new Date();
   yearDate.setDate(yearDate.getDate() + 100);
@@ -59,7 +70,7 @@ function getCurrentYear() {
 function validateEmail(email) { 
   var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if(re.test(email)){
-    if(email.indexOf("@kent.ac.uk", email.length - "@kent.ac.uk".length) !== -1){
+    if(email.indexOf("@kent.ac.uk") !== -1){
         return true;
     }
   }
@@ -198,25 +209,21 @@ app.get('/verify/:email/:tokenID', (req, res) => {
 
 // PROFILE //
 
-app.get('/:sessionID', sessionChecker, (req, res) => {
-  const courseID = req.params.courseID;
+app.get('/:sessionID/me', sessionChecker, (req, res) => {
+  const sessionID = req.params.sessionID;
   return sendSuccess(res, {
-    sessionID: courseID
+    sessionID: sessionID
   });
 });
 
 // SCHOOLS //
 
 app.get('/:sessionID/schools', sessionChecker, (req, res) => {
-  const schoolRef = db.collection("schools");
+  const schoolsRef = db.collection("constant").doc("schools");
   
-  return schoolRef.get().then(function(querySnapshot) {
-    var returnArr = [];
-    querySnapshot.forEach(function(doc) {
-        returnArr.push(doc.data());
-    });
-    return returnArr;
-  }).then(function(schools) {
+  return schoolsRef.get().then(function(doc) {
+    const schools = doc.data();
+    res.set('Cache-Control', 'public, max-age=900, s-maxage=1800');
     return sendSuccess(res, schools);
   }).catch(error =>{
     return sendError(res, 400, "Failed to get schools");
@@ -240,9 +247,9 @@ app.post('/:sessionID/schools/add', sessionChecker, (req, res) => {
 });
 
 // COURSES //
-
 app.get('/:sessionID/schools/:schoolID/courses', sessionChecker, (req, res) => {
-  const coursesRef = db.collection("courses");
+  const schoolID = req.params.schoolID;
+  const coursesRef = db.collection("courses").where("schools", "==", schoolID);
   
   return coursesRef.get().then(function(querySnapshot) {
     var returnArr = [];
@@ -251,6 +258,7 @@ app.get('/:sessionID/schools/:schoolID/courses', sessionChecker, (req, res) => {
     });
     return returnArr;
   }).then(function(course) {
+    res.set('Cache-Control', 'public, max-age=900, s-maxage=1800');
     return sendSuccess(res, course);
   }).catch(error =>{
     return sendError(res, 400, "Failed to get courses");
@@ -285,6 +293,21 @@ app.post('/:sessionID/courses/add', sessionChecker, (req, res) => {
 
 // Modules //
 
+app.get('/:sessionID/courses/:courseID', sessionChecker, (req, res) => {
+  const courseID = req.params.courseID;
+  const moduleRef = db.collection("courses").doc(courseID);
+  
+  return moduleRef.get().then(function(doc) {
+    if (!doc.exists || doc.data() == null || doc.data() == {}) {
+      return sendError(res, 400, "We do not have this course on our records");
+    } else {
+      return sendSuccess(res, doc.data());
+    }
+  }).catch(error =>{
+    return sendError(res, 400, "Failed to get course");
+  });
+});
+
 app.get('/:sessionID/courses/:courseID/modules', sessionChecker, (req, res) => {
   const courseID = req.params.courseID;
   const moduleRef = db.collection("courses").doc(courseID).collection("constants").doc("modules");
@@ -292,7 +315,7 @@ app.get('/:sessionID/courses/:courseID/modules', sessionChecker, (req, res) => {
   return moduleRef.get().then(function(doc) {
     return sendSuccess(res, doc.data());
   }).catch(error =>{
-    return sendError(res, 400, "Failed to get modules");
+    return sendError(res, 400, "Failed to get modules for course");
   });
 });
 
@@ -350,9 +373,11 @@ app.get('/:sessionID/modules/:moduleID', sessionChecker, (req, res) => {
   const moduleRef = db.collection("modules").doc(moduleID).collection("years").doc(getCurrentYear().toString());
   
   return moduleRef.get().then(doc => {
-    if (!doc.exists) {
+    if (!doc.exists || doc.data() == null || doc.data() == {}) {
       return sendError(res, 400, "Module hasn't been updated for this year");
-    } else return sendSuccess(res, doc.data());
+    } else {
+      return sendSuccess(res, doc.data());
+    }
   }).catch(a =>{
     return sendError(res, 400, "Failed to get module");
   });
@@ -377,6 +402,7 @@ app.get('/:sessionID/lectures/:lectureID', sessionChecker, (req, res) => {
   const lectureRef = db.collection("lectures").doc(lectureID);
   
   return lectureRef.get().then(doc => {
+    res.set('Cache-Control', 'public, max-age=900, s-maxage=1800');
     return sendSuccess(res, doc.data());
   }).catch(a =>{
     return sendError(res, 400, "Failed to get lecture");
@@ -433,77 +459,6 @@ app.post('/:sessionID/moduleHashs/add', sessionChecker, (req, res) => {
   });
 });
 
-app.get('/:sessionID/schools/:schoolID/courses', sessionChecker, (req, res) => {  
-  const schoolID = req.params.schoolID;
-  const coursesRef = db.collection("courses").where("schoolID", "==", schoolID);
-  coursesRef.get()
-    .then(function(querySnapshot) {
-        let courses = [];
-        querySnapshot.forEach(function(doc) {
-            courses.push(doc.data());
-        });
-        return courses;
-    }).then(courses => {
-        return sendSuccess(res, courses);
-    }).catch(a =>{
-      return sendError(res, 400, "Failed to get courses");
-    });
-});
-
-app.get('/:sessionID/courses/:courseID', sessionChecker, (req, res) => {  
-  const courseID = req.params.courseID;
-  const coursesRef = db.collection("courses").doc(courseID);
-  coursesRef.get()
-    .then(doc => {
-      return sendSuccess(res, doc.data());
-    }).catch(a =>{
-      return sendError(res, 400, "Failed to get course in this year");
-    });
-});
-
-app.get('/:sessionID/courses/:courseID/:year', sessionChecker, (req, res) => {  
-  const courseID = req.params.courseID;
-  const year = req.params.year;
-  const coursesRef = db.collection("courses").doc(courseID).collection("years").doc(year);
-  coursesRef.get()
-    .then(doc => {
-      return sendSuccess(res, doc.data());
-    }).catch(a =>{
-      return sendError(res, 400, "Failed to get course in this year");
-    });
-});
-
-app.get('/:sessionID/courses/:courseID/:year/lectures', sessionChecker, (req, res) => {  
-  const courseID = req.params.courseID;
-  const year = req.params.year;
-  const coursesRef = db.collection("courses").doc(courseID).collection("years").doc(year).collection("lectures");
-  coursesRef.get()
-    .then(function(querySnapshot) {
-        let courses = [];
-        querySnapshot.forEach(function(doc) {
-            courses.push(doc.data());
-        });
-        return courses;
-    }).then(courses => {
-      return sendSuccess(res, courses);
-    }).catch(a =>{
-      return sendError(res, 400, "Failed to get lectures");
-    });
-});
-
-app.get('/:sessionID/lectures/:lectureID', sessionChecker, (req, res) => {  
-  const lectureID = req.params.lectureID;
-  const coursesRef = db.collection("lectures").doc(lectureID);
-  coursesRef.get()
-    .then(function(doc) {
-        return doc.data();
-    }).then(courses => {
-      return sendSuccess(res, courses);
-    }).catch(a =>{
-      return sendError(res, 400, "Failed to get lectures");
-    });
-});
-
 // TODO: Test
 app.get('/:sessionID/courses/:courseID/:year/:lectureID/progress/:time', sessionChecker, (req, res) => {  
   const courseID = req.params.courseID;
@@ -512,94 +467,6 @@ app.get('/:sessionID/courses/:courseID/:year/:lectureID/progress/:time', session
   const time = req.params.time;
   const content = req.body;
   return processFeed(res, db, content, courseID, year);
-});
-
-app.get('/:sessionID/courses/:courseID/:year/lectures', sessionChecker, (req, res) => {  
-  const courseID = req.params.courseID;
-  const year = req.params.year;
-  const coursesRef = db.collection("courses").doc(courseID).collection("years").doc(year).collection("lectures");
-  coursesRef.get()
-    .then(function(querySnapshot) {
-        let courses = [];
-        querySnapshot.forEach(function(doc) {
-            courses.push(doc.data());
-        });
-        return courses;
-    }).then(courses => {
-      return sendSuccess(res, courses);
-    }).catch(a =>{
-      return sendError(res, 400, "Failed to get lectures");
-    });
-});
-
-app.get('/:sessionID/courseList/:schoolID/:courseID/:courseHash', sessionChecker, (req, res) => {  
-  const courseID = req.params.courseID;
-  const courseHash = req.params.courseHash;
-  let result = {
-    error: false,
-  }
-  const lectureRef = db.collection("courses").doc(courseID).collection("lectures").doc(lectureID);
-  lectureRef.get()
-    .then(function(doc) {
-      if (doc.exists){
-        result.result = doc.data();
-        res.send(JSON.stringify(result));
-      } else {
-        result.error = true;
-        result.infoMessage = "Lecture doesnt exists";
-        res.send(JSON.stringify(result));
-      }
-    }).catch(a =>{
-      result.error = true;
-      result.infoMessage = "Failed to get the course";
-      res.send(JSON.stringify(result));
-    });
-});
-
-app.get('/:sessionID/courses/:courseID', sessionChecker, (req, res) => {  
-  const courseID = req.params.courseID;
-  let result = {
-    error: false,
-  }
-  const courseRef = db.collection("courses").doc(courseID);
-  courseRef.get()
-    .then(function(doc) {
-      if (doc.exists){
-        result.result = doc.data();
-        res.send(JSON.stringify(result));
-      } else {
-        result.error = true;
-        result.infoMessage = "Course doesnt exists";
-        res.send(JSON.stringify(result));
-      }
-    }).catch(a =>{
-      result.error = true;
-      result.infoMessage = "Failed to get the course";
-      res.send(JSON.stringify(result));
-    });
-});
-
-
-exports.createLecture = functions.firestore.document('lectures/{lectureID}').onCreate((snap, context) => {
-  const lectureID = context.params.lectureID;
-  const newValue = snap.data();
-
-  const lecturesRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year);
-  return lecturesRef.set({
-    [newValue.title]: {
-      title: newValue.title,
-      author: newValue.author,
-      videoURL: newValue.videoURL,
-      videoLength: newValue.videoLength,
-      duration: newValue.duration,
-      date: newValue.date,
-      moduleID: newValue.moduleID,
-      year: newValue.year,
-      lectureID: newValue.lectureID,
-    }
-  });
-  
-  return batch.commit();
 });
 
 exports.createUser = functions.firestore.document('users/{userID}').onCreate((snap, context) => {
@@ -757,6 +624,24 @@ function getDayNo(date) {
   return Math.floor((((date).getTime()/(86400000)) - 3) % 7);
 }
 
+function getHourNo(date) {
+  return Math.floor((date.getTime() / 3600000)) % 24;
+}
+
+function getAchedemicYear() {
+  const yearDate = new Date();
+  yearDate.setDate(yearDate.getDate() + 100);
+  return yearDate.getFullYear();
+}
+
+function getCurrentWeekNo() {
+  return getWeekNo(new Date())
+}
+
+function getCurrentDayNo() {
+  return getDayNo(new Date())
+}
+
 exports.weekly_job = functions.pubsub.topic('weekly-tick').onPublish((message) => {
   var options = {
     method: 'GET',
@@ -818,106 +703,381 @@ function startOfLectureDate(date) {
     return hour;
 }
 
-exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) => {
-  const hour = new Date().getHours();
-  if ((hour > 8 && hour < 18) || true) {
-      var yearDate = new Date();
-      yearDate.setDate(yearDate.getDate() + 100);
-      const currentYear = yearDate.getFullYear();
-      const weeksRef = db.collection("constant").doc("weeks");
-      return weeksRef.get()
-        .then(function(doc) {
-          const weeks = doc.data();
-        
-          
-        
-      const coursesToUpdateRef = db.collection("moduleKeys").where('year', '==', currentYear).where('nextUpdate', '<', new Date().getTime());
-      return coursesToUpdateRef.get()
-        .then(function(querySnapshot) {
-          return querySnapshot.forEach(function(doc) {
-            const course = doc.data();
-            var options = {
-              method: 'GET',
-              uri: 'https://cors-anywhere.herokuapp.com/http://player.kent.ac.uk/Panopto/Podcast/Podcast.ashx?courseid=' + course.hash + '&type=mp4',
-              headers: {
-                'x-requested-with': 'https://player.kent.ac.uk',
-              }
-            };
+function roundMinutes(date) {
+    date.setHours(date.getHours() + Math.round(date.getMinutes() / 60) - 1);
+    date.setMinutes(0);
+    return date.getHours() + ":" + ('00' + date.getMinutes()).slice(-2);
+}
 
-            return requestPromise(options)
-              .then(function(xml) {
-                return xml2js(xml).then(function(json) {
-                      const batch = db.batch();
-                      let courseRaw = json.rss.channel[0];
-                      let yearStr = courseRaw.title[0].match(/(20[0-2][0-9]\/20[0-2][0-9])/)[0];
-                      const year = yearStr.substr(0, yearStr.indexOf("/"));
-                      const moduleID = courseRaw.title[0].match(/[A-Z]+[0-9]+/)[0];
+function numToSSColumn(num){
+  var s = '', t;
 
-                      function roundMinutes(date) {
-                        date.setHours(date.getHours() + Math.round(date.getMinutes() / 60) - 1);
-                        date.setMinutes(0);
-                        return date.getHours() + ":" + ('00' + date.getMinutes()).slice(-2);
-                      }
-                      const lectures = [];
-
-                      let lectureTimes = [];
-                      let weeksCount = {};
-                      for (var lectureNo in courseRaw.item) {
-                        let lecture = courseRaw.item[lectureNo];
-                        let title = lecture.title[0].replace(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)+(.*)+(AM|PM|am|pm)/, '');
-                        if (title.length == 0)
-                            title = courseRaw.title[0] + " " + new Date(lecture.pubDate[0]).toDateString() + " " + roundMinutes(new Date(lecture.pubDate[0]));
-                        const currentdate = new Date();
-                        var lectureID = currentdate.getDate() + "-" +
-                            (currentdate.getMonth() + 1) + "-" +
-                            currentdate.getFullYear() + "@" +
-                            currentdate.getHours() + ":" +
-                            currentdate.getMinutes();
-                        lectureTimes.add(startOfLectureDate);
-                        lectureTimes.add(startOfLectureDate + 1);
-                        let weekNo = new Date(lecture.pubDate[0]).getTime()/(1000*60*60*24);
-                        if (weeksCount[weekNo]) {
-                          weeksCount[weekNo]++;
-                        } else {
-                          weeksCount[weekNo] = 1;
-                        }
-                        
-                        const lectureObj = {
-                            title: title,
-                            author: lecture["itunes:author"][0].replace("Moodle/", "").replace("Moodle", "").replace(`\\`, ""),
-                            videoURL: lecture["enclosure"][0]["$"]["url"],
-                            videoLength: lecture["itunes:duration"][0],
-                            duration: parseInt(lecture["itunes:duration"][0] / 60) + ":" + ("0" + parseInt(lecture["itunes:duration"][0] % 60)).slice(-2),
-                            date: new Date(lecture.pubDate[0]).toDateString() + " " + roundMinutes(new Date(lecture.pubDate[0])),
-                            moduleID: moduleID,
-                            year: year,
-                            lectureID: lectureID,
-                        };
-
-                        lectureRef = db.collection("modules").doc(moduleID).collection(year).doc(courseID + "." + lectureID);
-                        batch.set(lectureRef, {
-                            ["lecturesWeeksCount." + week]: {
-                                ["lectures." + title]: {
-                                    lectureObj,
-                                }
-                            }
-                        });
-                      }
-
-                      let keyRef = db.collection("moduleKeys").doc(doc.id);
-                      let time = new Date();
-                      time = time.setHours(time.getHours() + 3);
-                      batch.update(keyRef, {
-                          nextUpdate: new Date().getTime() + (1000 * 60 * 60 * 5),
-                      });
-                      return batch.commit();
-                    })
-                  .catch(function(err) {
-                        return console.warn("Could not update CourseHash - " + course.hash + " " + err);
-                    });
-              });
-          });
-        });
-      });
+  while (num > 0) {
+    t = (num - 1) % 26;
+    s = String.fromCharCode(65 + t) + s;
+    num = (num - t)/26 | 0;
   }
+  return s.toLowerCase() || "";
+}
+
+function getNextDayTime(dayNo, hourNo) {
+    let d = new Date();
+    d.setDate(d.getDate() + (dayNo + 7 - d.getDay()) % 7);
+    d.setHours(hourNo);
+    return d.getTime();
+}
+
+function getNextLectureUpdate(tree, currentDayNo, currentHourNo) {
+  let minH = 999999999999;
+  let endH = null;
+  let endD = null
+  for (let days in tree) {
+      day = parseInt(days);
+      for (let hour of tree[day]) {
+          let dayDiff = Math.abs((day - currentDayNo) % 7);
+          let hourDiff = Math.abs(hour - currentHourNo);
+          dayDiff = parseInt(hourDiff / 24);
+          hourDiff = hourDiff % 24;
+          if (dayDiff * 24 + hourDiff < minH) {
+            minH = dayDiff * 24 + hourDiff;
+            endD = day;
+            endH = hour;
+          }
+      }
+  }
+  return (endD != null && endH != null ) ? [endD,endH] : null;
+}
+
+function uniq(a) {
+    var seen = {};
+    return a.filter(function(item) {
+        return seen.hasOwnProperty(item) ? false : (seen[item] = true);
+    });
+}
+
+exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) => {
+    const hour = new Date().getHours();
+  
+    if ((hour > 8 && hour < 18) || true) {
+        const currentYear = getAchedemicYear();
+        const weeksRef = db.collection("constant").doc("weeks");
+      
+        return weeksRef.get().then(function(doc) {
+            const weeks = doc.data();
+            const coursesToUpdateRef = db.collection("moduleKeys").where('active', '==', true).where('year', '==', currentYear).where('nextUpdate', '<', new Date().getTime());
+          
+            return coursesToUpdateRef.get()
+              .then(function(querySnapshot) {
+              
+                  return querySnapshot.forEach(function(doc) {
+                      const course = doc.data();
+                      var options = {
+                          method: 'GET',
+                          uri: 'https://cors-anywhere.herokuapp.com/http://player.kent.ac.uk/Panopto/Podcast/Podcast.ashx?courseid=' + course.hash + '&type=mp4',
+                          headers: {
+                              'x-requested-with': 'https://player.kent.ac.uk',
+                          }
+                      };
+
+                      return requestPromise(options)
+                        .then(function(xml) {
+                          return xml2js(xml).then(function(json) {
+                                const batch = db.batch();
+                            
+                                let courseRaw = json.rss.channel[0];
+                                let yearStr = courseRaw.title[0].match(/(20[0-2][0-9]\/20[0-2][0-9])/)[0];
+                                const year = yearStr.substr(0, yearStr.indexOf("/"));
+                                const moduleID = courseRaw.title[0].match(/[A-Z]+[0-9]+/)[0];
+                  
+                                let weekCount = {};   
+                                let lectureChecks = {};
+                                const lectures = [];
+
+                                for (let lecture of courseRaw.item) {
+                                    let lectureWeek = getWeekNo(new Date(lecture.pubDate[0]));
+                                    let lectureDay = getDayNo(new Date(lecture.pubDate[0]));
+                                    let lectureHour = getHourNo(new Date(lecture.pubDate[0]));
+                                    
+                                    weekCount[lectureWeek] = (weekCount[lectureWeek]) ? weekCount[lectureWeek] + 1 : 1;
+                                    if (!lectureChecks[lectureDay])
+                                        lectureChecks[lectureDay] = [];
+                                    lectureChecks[lectureDay].push(lectureHour);
+                                    
+                                    const weekCode = weeks[lectureWeek].code;
+                                    const title = moduleID + " " + weekCode + numToSSColumn(weekCount[lectureWeek]);
+                                    const desciption = lecture.title[0];
+                                    const lectureID = moduleID + "." + weekCode + numToSSColumn(weekCount[lectureWeek]);
+                                    const author = lecture["itunes:author"][0].replace("Moodle/", "").replace("Moodle", "").replace(`\\`, "");
+                                    const videoURL = lecture["enclosure"][0]["$"]["url"];
+                                    const videoLength = lecture["itunes:duration"][0];
+                                    const duration = parseInt(lecture["itunes:duration"][0] / 60) + ":" + ("0" + parseInt(lecture["itunes:duration"][0] % 60)).slice(-2);
+                                    const date = new Date(lecture.pubDate[0]).toDateString() + " " + roundMinutes(new Date(lecture.pubDate[0]));
+                                  
+                                    const lectureObj = {
+                                        lectureID: lectureID,
+                                        title: title,
+                                        description: desciption,
+                                        author: author,
+                                        videoURL: videoURL,
+                                        videoLength: videoLength,
+                                        duration: duration,
+                                        date: date,
+                                        moduleID: moduleID,
+                                        year: currentYear,
+                                        uniqueifiers: {
+                                          week: lectureWeek,
+                                          day: lectureDay,
+                                          hour: lectureHour,
+                                        }
+                                    };
+
+                                    const lectureRef = db.collection("lectures").doc(lectureID);
+                                    batch.set(lectureRef, lectureObj);
+                                }
+                            
+                                for (var i in lectureChecks) {
+                                  lectureChecks[i] = uniq(lectureChecks[i]);
+                                  for (var b in lectureChecks[i])
+                                    lectureChecks[i][b]++;
+                                }
+                                
+                                keyObj = {
+                                  weekCount: weekCount,
+                                  lectureChecks: lectureChecks,
+                                };
+                                if (course.year != currentYear) {
+                                    keyObj.active = false;
+                                } else if (weekCount.length == 1 || lectureChecks.length == 0) {
+                                    keyObj.firstWeek = true; 
+                                } else if (lectureChecks.length == 0) { 
+                                    keyObj.firstWeek = false; 
+                                } else {
+                                    let time = new Date();
+                                    let tD = time.getDate();
+                                    let tH = time.getHours();
+                                    const dayNo = getDayNo(new Date());
+                                    const hourNo = getHourNo(new Date());
+                                    let datetime = getNextLectureUpdate(lectureChecks, dayNo, hourNo);
+                                    time.setDate(tD + (dayNo - datetime[0]) % 7);
+                                    time.setHours(tH + (hourNo - datetime[1]) % 24);
+                                    keyObj.nextUpdate = time.getTime();
+                                }
+                                let keyRef = db.collection("moduleKeys").doc(course.hash);
+                                batch.update(keyRef, keyObj);
+                                return batch.commit();
+                              })
+                              .catch(function(err) {
+                                  return console.warn("Could not update ModuleHash - " + course.hash + " " + err);
+                              });
+                        });
+                  });
+              });
+        });
+    }
+});
+
+exports.createLecture = functions.firestore.document('lectures/{lectureID}').onCreate((snap, context) => {
+    const newValue = snap.data();
+  console.log("moduleID"+newValue.moduleID); 
+  console.log("year"+newValue.year);
+    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year);
+  console.log("ref:"+constantLectureRef);
+    return constantLectureRef.set({
+      a: true,
+     /* [newValue.lectureID]: {
+        lectureID: newValue.lectureID,
+        author: newValue.author,
+        date: newValue.author,
+        duration: newValue.duration,
+        title: newValue.title,
+        videoLength: newValue.videoLength,
+        videoURL: newValue.videoURL,
+      }*/
+    }, {merge: true}).catch(e =>{
+      throw new Error(e);
+    });;
+});
+
+exports.updateLecture = functions.firestore.document('lectures/{lectureID}').onUpdate((change, context) => {
+    const newValue = change.after.data();
+    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year);
+    return constantLectureRef.update({
+      [newValue.lectureID]: {
+        lectureID: newValue.lectureID,
+        author: newValue.author,
+        date: newValue.author,
+        duration: newValue.duration,
+        title: newValue.title,
+        videoLength: newValue.videoLength,
+        videoURL: newValue.videoURL,
+      }
+    })
+});
+
+exports.deleteLecture = functions.firestore.document('lectures/{lectureID}').onDelete((snap, context) => {
+    const newValue = snap.data();
+    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year);
+    return constantLectureRef.update({
+      [newValue.lectureID]: FieldValue.delete(),
+    })
+});
+
+exports.addSchool = functions.firestore.document('schools/{schoolID}').onCreate((snap, context) => {
+    const newValue = snap.data();
+    const constantSchoolsRef = db.collection("constant").doc("schools");
+    return constantSchoolsRef.set({
+      [newValue.id]: {
+        schoolID: newValue.id,
+        name: newValue.name,
+      }
+    })
+});
+
+exports.updateSchool = functions.firestore.document('schools/{schoolID}').onUpdate((change, context) => {
+    const newValue = change.after.data();
+    const constantSchoolsRef = db.collection("constant").doc("schools");
+    return constantSchoolsRef.update({
+      [newValue.id]: {
+        schoolID: newValue.id,
+        name: newValue.name,
+      }
+    })
+});
+
+exports.deleteSchool = functions.firestore.document('schools/{schoolID}').onDelete((snap, context) => {
+    const newValue = snap.data();
+    const constantSchoolsRef = db.collection("constant").doc("schools");
+    return constantSchoolsRef.update({
+      [newValue.id]: FieldValue.delete()
+    })
+});
+
+exports.addModule = functions.firestore.document('modules/{moduleID}').onCreate((snap, context) => {
+    const newValue = snap.data();
+    const batch = db.batch();
+  
+    for (var courseID of newValue.courses) {
+      let coursesRef = db.collection("courses").doc(courseID);
+      batch.update(coursesRef, {
+        [newValue.moduleID]: {
+          moduleID: newValue.moduleID,
+          name: newValue.name,
+          stage: newValue.stage,
+          term: newValue.term,
+        },
+      })
+    }
+  
+    return batch.commit();
+});
+
+exports.updateModule = functions.firestore.document('modules/{moduleID}').onUpdate((change, context) => {
+    const newValue = change.after.data();
+    const batch = db.batch();
+  
+    for (var courseID of newValue.courses) {
+      let coursesRef = db.collection("courses").doc(courseID);
+      batch.update(coursesRef, {
+        [newValue.moduleID]: {
+          moduleID: newValue.moduleID,
+          name: newValue.name,
+          stage: newValue.stage,
+          term: newValue.term,
+        },
+      })
+    }
+  
+    return batch.commit();
+});
+
+exports.updateModuleYears = functions.firestore.document('modules/{moduleID}').onUpdate((change, context) => {
+    const module = change.after.data();
+    const yearsRef = change.after.ref().collection("years");
+  
+    return yearsRef.get().then(function(querySnapshot) {
+      const batch = db.batch();
+      querySnapshot.forEach(function(doc) {
+          doc.ref().update({
+              moduleID: module.moduleID,
+              name: module.name,
+              period: module.period,
+              year: module.year,
+          })
+      });
+      return batch.commit();
+    });
+});
+
+exports.updateModule = functions.firestore.document('modules/{moduleID}/years/{yearID}').onCreate((snap, context) => {
+    const moduleID = context.params.userId;
+    let coursesRef = db.collection("modules").doc(moduleID);
+  
+    return coursesRef.get().then(doc => {
+      const module = doc.data();
+      
+      return snap.ref.set({
+        moduleID: module.moduleID,
+        name: module.name,
+        period: module.period,
+        year: module.year,
+        lectures: {},
+      })
+    })
+});
+
+exports.deleteModule = functions.firestore.document('modules/{moduleID}').onDelete((snap, context) => {
+    const newValue = snap.data();
+    const batch = db.batch();
+  
+    for (var courseID of newValue.courses) {
+      let coursesRef = db.collection("courses").doc(courseID);
+      batch.update(coursesRef, {
+        [newValue.moduleID]: {
+          moduleID: newValue.moduleID,
+          name: newValue.name,
+          stage: newValue.stage,
+          term: newValue.term,
+        },
+      })
+    }
+  
+    return batch.commit();
+    let coursesRef = db.collection("courses").doc(newValue.courseID);
+    return coursesRef.update({
+      [newValue.moduleID]: FieldValue.delete()
+    })
+});
+
+
+exports.addModuleKey = functions.firestore.document('moduleKeys/{modulesKeyID}').onCreate((snap, context) => {
+    const newValue = snap.data();
+    
+    let moduleRef = db.collection("modules").doc(newValue.moduleID);
+    return moduleRef.set({
+      moduleID: newValue.moduleID,
+      name: newValue.name,
+      period: newValue.period,
+      year: newValue.year,
+    }, {merge: true});
+});
+
+exports.updateModuleKey = functions.firestore.document('moduleKeys/{modulesKeyID}').onUpdate((change, context) => {
+    const newValue = change.after.data();
+  
+    let moduleRef = db.collection("modules").doc(newValue.moduleID);
+    return moduleRef.update({
+      moduleID: newValue.moduleID,
+      name: newValue.name,
+      period: newValue.period,
+      year: newValue.year,
+    });
+});
+
+exports.deleteModuleKey = functions.firestore.document('moduleKeys/{modulesKeyID}').onDelete((snap, context) => {
+    const newValue = snap.data();
+  
+    let moduleRef = db.collection("modules").doc(newValue.moduleID);
+    return moduleRef.update({
+      active: false,
+    });
 });
