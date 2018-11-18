@@ -16,9 +16,7 @@
     <script defer src="/__/firebase/5.5.3/firebase-app.js"></script>
     <!-- include only the Firebase features as you need -->
     <script defer src="/__/firebase/5.5.3/firebase-auth.js"></script>
-    <script defer src="/__/firebase/5.5.3/firebase-database.js"></script>
-    <script defer src="/__/firebase/5.5.3/firebase-messaging.js"></script>
-    <script defer src="/__/firebase/5.5.3/firebase-storage.js"></script>
+    <script defer src="/__/firebase/5.5.3/firebase-firestore.js"></script>
     <!-- initialize the SDK after all desired features are loaded -->
     <script defer src="/__/firebase/init.js"></script>
 </head>
@@ -39,13 +37,13 @@
                     </div>
                 </div>
                 <div class="col-md-8 col-lg-8">
-                    <div class="panel">
+                    <div class="panel addCourse">
                         <p class="h4">Add a Course</p>
                         <p class="lead">Add a course that is not currenly on KentFlix.</p>
                         <div class="form-group">
                             <label for="courseID">Course Code</label>
                             <input type="text" class="form-control" id="courseID" aria-describedby="courseIDHelp" placeholder="Enter Course ID" autocomplete="off">
-                            <small id="courseIDHelp" class="form-text text-muted">This would the short hand for your school, for example School of Computing is SoC.</small>
+                            <small id="courseIDHelp" class="form-text text-muted">This would the code for the course just as you would find it on SDS, eg G400.</small>
                         </div>
                         <div class="form-group">
                             <label for="schoolName">Course Name</label>
@@ -59,9 +57,9 @@
                               <option>SoE</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Add</button>
+                        <button class="btn btn-primary">Add</button>
                     </div>
-                    <div class="panel">
+                    <div class="panel editCourse">
                         <p class="h4">Edit an Existing Course</p>
                         <p class="lead">Find a course below and then edit it's details.</p>
                         <div class="form-group">
@@ -84,9 +82,9 @@
                               <option>SoE</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Update</button>
+                        <button class="btn btn-primary">Update</button>
                     </div>
-                    <div class="panel">
+                    <div class="panel deleteCourse">
                         <p class="h4">Remove an Existing Course</p>
                         <p class="lead">Find a course below to remove.</p>
                         <div class="form-group">
@@ -97,7 +95,7 @@
                               <option>G405</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button class="btn btn-danger">Delete</button>
                     </div>
                 </div>
             </div>
@@ -108,6 +106,21 @@
 		<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 		<script src="/vendor/jquery-easing/jquery.easing.min.js"></script>
         <script src="/js/main.js"></script>
+      
+        <script>
+          $(e=>{
+            const db = firebase.firestore()
+            $(".addCourse button").click(e =>{
+              const courseID = $(".addCourse #courseID").val();
+              const courseName = $(".addCourse #courseName").val();
+              const courseSchools = $(".addCourse #courseSchools").val();
+              db.collection("courses").doc(courseID).set({
+                name: courseName,
+                schools: courseSchools,
+              })
+            });
+          });
+        </script>
 	</div>
 </body>
 </html>

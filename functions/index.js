@@ -64,7 +64,7 @@ app.use(Sentry.Handlers.errorHandler());
 function getCurrentYear() {
   let yearDate = new Date();
   yearDate.setDate(yearDate.getDate() + 100);
-  return yearDate.getFullYear() - 1;
+  return yearDate.getFullYear();
 }
 
 function validateEmail(email) { 
@@ -80,7 +80,8 @@ function validateEmail(email) {
 var sendSuccess = (res, payload) => {
   const responce = {
     "success": true,
-    "payload": payload
+    "payload": payload,
+    "status": 200,
   };
   return res.status(200).send(JSON.stringify(responce));
 };
@@ -89,9 +90,9 @@ var sendError = (res, code, message) => {
   const responce = {
     "success": false,
     "error": {
-      "code": code,
       "message": message
-    }
+    },
+    "status": code,
   };
   return res.status(code).send(JSON.stringify(responce));
 };
@@ -172,7 +173,7 @@ app.post('/signup', (req, res) => {
             return sendSuccess(res, "Now verify you account by checking your emails");
           })
           .catch(function(error) {
-            return sendError(res, 500, "Failed to create user");
+            return sendError(res, 500, "Failed to signup");
           });
         }
     });
@@ -246,20 +247,17 @@ app.post('/:sessionID/schools/add', sessionChecker, (req, res) => {
   });
 });
 
-// COURSES //
 app.get('/:sessionID/schools/:schoolID/courses', sessionChecker, (req, res) => {
   const schoolID = req.params.schoolID;
-  const coursesRef = db.collection("courses").where("schools", "==", schoolID);
+  const coursesRef = db.collection("schools").doc(schoolID).collection("constants").doc("courses");
   
-  return coursesRef.get().then(function(querySnapshot) {
-    var returnArr = [];
-    querySnapshot.forEach(function(doc) {
-        returnArr.push(doc.data());
-    });
-    return returnArr;
-  }).then(function(course) {
+  return coursesRef.get().then(function(doc) {
     res.set('Cache-Control', 'public, max-age=900, s-maxage=1800');
-    return sendSuccess(res, course);
+    if (!doc.exists || doc.data() == null || doc.data() == {}) {
+      return sendError(res, 400, "We do not have this school on our records");
+    } else {
+      return sendSuccess(res, doc.data());
+    }
   }).catch(error =>{
     return sendError(res, 400, "Failed to get courses");
   });
@@ -269,14 +267,13 @@ app.post('/:sessionID/courses/add', sessionChecker, (req, res) => {
   const values = req.body;
   const courseID = values.courseID;
   const courseName = values.courseName;
-  const courseSchool = values.courseSchool;
+  const schoolID = values.schoolID;
   const batch = db.batch();
   
   const courseRef = db.collection("courses").doc(courseID);
   batch.set(courseRef, {
-    id: courseID,
-    name: courseName,
-    schools: courseSchool,
+    name: name,
+    schoolID: schoolID,
   });
   
   const courseModulesRef = db.collection("courses").doc(courseID).collection("constants").doc("modules");
@@ -313,9 +310,13 @@ app.get('/:sessionID/courses/:courseID/modules', sessionChecker, (req, res) => {
   const moduleRef = db.collection("courses").doc(courseID).collection("constants").doc("modules");
   
   return moduleRef.get().then(function(doc) {
-    return sendSuccess(res, doc.data());
+    if (!doc.exists || !doc.data() || doc.data() == null || doc.data() == {}) {
+      return sendError(res, 400, "We do not any courses for this on our records");
+    } else {
+      return sendSuccess(res, doc.data());
+    }
   }).catch(error =>{
-    return sendError(res, 400, "Failed to get modules for course");
+    return sendError(res, 400, "Failed to get course");
   });
 });
 
@@ -370,11 +371,32 @@ app.post('/:sessionID/modules/:moduleID/assignTo/:courseID', sessionChecker, (re
 
 app.get('/:sessionID/modules/:moduleID', sessionChecker, (req, res) => {  
   const moduleID = req.params.moduleID;
+  const moduleRef = db.collection("modules").doc(moduleID)
+  
+  return moduleRef.get().then(doc => {
+    if (!doc.exists || doc.data() == null || doc.data() == {}) {
+      return sendError(res, 400, "We dont have this module on our system");
+    } else {
+      const data = doc.data();
+      return sendSuccess(res, {
+        term: data.term,
+        name: data.name,
+        stage: data.stage,
+        moduleID: doc.id,
+      });
+    }
+  }).catch(a =>{
+    return sendError(res, 400, "Failed to get module");
+  });
+});
+
+app.get('/:sessionID/modules/:moduleID/lectures', sessionChecker, (req, res) => {  
+  const moduleID = req.params.moduleID;
   const moduleRef = db.collection("modules").doc(moduleID).collection("years").doc(getCurrentYear().toString());
   
   return moduleRef.get().then(doc => {
     if (!doc.exists || doc.data() == null || doc.data() == {}) {
-      return sendError(res, 400, "Module hasn't been updated for this year");
+      return sendError(res, 400, "Module hasn't been updated for "+getCurrentYear().toString());
     } else {
       return sendSuccess(res, doc.data());
     }
@@ -383,12 +405,17 @@ app.get('/:sessionID/modules/:moduleID', sessionChecker, (req, res) => {
   });
 });
 
-app.get('/:sessionID/modules/:moduleID/:year', sessionChecker, (req, res) => {  
+app.get('/:sessionID/modules/:moduleID/lectures/:year', sessionChecker, (req, res) => {  
   const moduleID = req.params.moduleID;
   const year = req.params.year;
   const moduleRef = db.collection("modules").doc(moduleID).collection("years").doc(year);
   
   return moduleRef.get().then(doc => {
+     if (!doc.exists || doc.data() == null || doc.data() == {}) {
+      return sendError(res, 400, "Module hasn't been updated for "+year);
+    } else {
+      return sendSuccess(res, doc.data());
+    }
     return sendSuccess(res, doc.data());
   }).catch(a =>{
     return sendError(res, 400, "Failed to get module");
@@ -403,7 +430,11 @@ app.get('/:sessionID/lectures/:lectureID', sessionChecker, (req, res) => {
   
   return lectureRef.get().then(doc => {
     res.set('Cache-Control', 'public, max-age=900, s-maxage=1800');
-    return sendSuccess(res, doc.data());
+    if (doc.exists) {
+      return sendSuccess(res, doc.data());
+    } else {
+      return sendError(res, 400, "We dont have this lecture in the system");
+    }
   }).catch(a =>{
     return sendError(res, 400, "Failed to get lecture");
   });
@@ -434,7 +465,8 @@ app.post('/:sessionID/moduleHashs/add', sessionChecker, (req, res) => {
   const hash = values.hash;
   const schoolID = values.schoolID;
   const courseID = values.courseID;
-  const period = values.period;
+  const stage = values.stage;
+  const term = values.term;
   const year = values.year;
   const name = values.name;
   let result = {
@@ -447,7 +479,8 @@ app.post('/:sessionID/moduleHashs/add', sessionChecker, (req, res) => {
     courseID: courseID,
     year: year,
     nextUpdate: 0,
-    period: period,
+    stage: stage,
+    term: term,
     name: name,
   }).then(function() {
     result.infoMessage = "Created the Course Hash";
@@ -535,15 +568,14 @@ I hope you will enjoy our service.`;
 });
 
 
-exports.createLectureHash = functions.firestore.document('courseKeys/{courseKeyID}').onCreate((snap, context) => {
+exports.createLectureHash = functions.firestore.document('moduleKeys/{courseKeyID}').onCreate((snap, context) => {
   const newValue = snap.data();
   const batch = db.batch();
-  const lecturesRef = db.collection("courses").doc(newValue.courseCode);
-  batch.set(lecturesRef, {
+  const courseRef = db.collection("courses").doc(newValue.courseCode);
+  batch.set(courseRef, {
     courseID: newValue.courseCode,
     name: newValue.name,
     schoolID: newValue.school,
-    term: newValue.period,
     status: "active",
   });
   
@@ -578,29 +610,37 @@ exports.updateCourseWhenAddedModule = functions.firestore.document('modules/{mod
   const newValue = change.after.data();
   const previousValue = change.before.data();
   const batch = db.batch();
-  
+  console.log("NV:"+JSON.stringify(newValue));
+  console.log("PV:"+JSON.stringify(previousValue));
   if (newValue.courses != previousValue.courses) {
     const allCourses = newValue.courses.concat(previousValue.courses);
     let newContains, oldContains;
-    const courseModulesObj = {}
+    
+    const moduleObj = {
+      moduleID: previousValue.moduleID,
+      name: previousValue.name,
+      stage: previousValue.stage,
+      term: previousValue.term,
+    };
     
     for (let courseID of allCourses) {
       newContains = newValue.courses.indexOf(courseID) > -1;
       oldContains = previousValue.courses.indexOf(courseID) > -1;
-      const courseModulesRef = db.collection("courses").doc(courseID).collection("constants").doc("modules");
+      let courseModulesRef = db.collection("courses").doc(courseID).collection("constants").doc("modules");
       
       if (newContains) {
+        console.log("newContains:"+JSON.stringify({
+          [newValue.moduleID]: moduleObj,
+        }));
         batch.set(courseModulesRef, {
-          [previousValue.moduleID]: {
-            moduleID: previousValue.moduleID,
-            name: previousValue.name,
-            stage: previousValue.stage,
-            term: previousValue.term,
-          },
+          [newValue.moduleID]: moduleObj,
         }, {merge: true});
       } else if (oldContains) {
+        console.log("newContains:"+JSON.stringify({
+          [newValue.moduleID]: null,
+        }));
         batch.update(courseModulesRef, {
-          [previousValue.moduleID]: FieldValue.delete(),
+          [newValue.moduleID]: FieldValue.delete(),
         });
       }
     }
@@ -755,6 +795,87 @@ function uniq(a) {
     });
 }
 
+function toShorthand(x) {
+  myName = x.split(" ");
+  shorthand = "";
+  for (i = 0; i < myName.length; i++)
+      shorthand += myName[i].charAt(0);
+  return shorthand;
+}
+
+/*
+exports.cron_getCourses = functions.pubsub.topic('weekly-tick').onPublish((message) => {
+    const acceptedCampuses = ["Canterbury"];
+    const acceptedSchools = ["School of Computing"];
+    return querySnapshot.forEach(function(doc) {
+        const course = doc.data();
+        var options = {
+            method: 'GET',
+            uri: 'https://cors-anywhere.herokuapp.com/https://api.kent.ac.uk/api/programmes/current/all/programmes/',
+            headers: {
+                'x-requested-with': 'https://player.kent.ac.uk',
+            }
+        };
+
+        return requestPromise(options)
+          .then(function(xml) {
+            return xml2js(xml).then(function(courses) {
+              const batch = db.batch();
+              const courseCodes = [];
+              for (var course of courses) {
+                if (acceptedSchools.contains(course.main_school) && acceptedCampuses.contains(course.campus)) {
+                  courseCodes.push(course.ucas_code);
+                  let newCourseObj = {
+                    name: course.name,
+                    campus: course.campus,
+                    school: toShorthand(course.main_school),
+                  }
+                }
+                let constantModulesForType = db.collection("courses").doc("modules").collection("groups").doc(code);
+                batch.set(constantModulesForType, moduleGroups);
+              }
+              return batch.commit();
+            });
+        });
+    });
+});
+
+exports.cron_getModules = functions.pubsub.topic('weekly-tick').onPublish((message) => {
+    const acceptedCodes = ["COMP"];
+    return querySnapshot.forEach(function(doc) {
+        const course = doc.data();
+        var options = {
+            method: 'GET',
+            uri: 'https://cors-anywhere.herokuapp.com/https://api.kent.ac.uk/api/v1/modules/collection/all',
+            headers: {
+                'x-requested-with': 'https://player.kent.ac.uk',
+            }
+        };
+
+        return requestPromise(options)
+          .then(function(xml) {
+            return xml2js(xml).then(function(moduleStack) {
+              const batch = db.batch();
+              for (var code of acceptedCodes) {
+                var moduleGroups = {};
+                for (var course of moduleStack.modules) {
+                  if (course.code.indexOf(code) != -1) {
+                    moduleGroups[module.sds_code] = {
+                      code: module.sds_code,
+                      running: module.running,
+                      title: module.title,
+                    }
+                  }
+                }
+                let constantModulesForType = db.collection("constants").doc("modules").collection("groups").doc(code);
+                batch.set(constantModulesForType, moduleGroups);
+              }
+              return batch.commit();
+            });
+        });
+    });
+});*/
+
 exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) => {
     const hour = new Date().getHours();
   
@@ -764,7 +885,7 @@ exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) =
       
         return weeksRef.get().then(function(doc) {
             const weeks = doc.data();
-            const coursesToUpdateRef = db.collection("moduleKeys").where('active', '==', true).where('year', '==', currentYear).where('nextUpdate', '<', new Date().getTime());
+            const coursesToUpdateRef = db.collection("moduleKeys").where('year', '==', currentYear).where('nextUpdate', '<', new Date().getTime());
           
             return coursesToUpdateRef.get()
               .then(function(querySnapshot) {
@@ -806,7 +927,7 @@ exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) =
                                     const weekCode = weeks[lectureWeek].code;
                                     const title = moduleID + " " + weekCode + numToSSColumn(weekCount[lectureWeek]);
                                     const desciption = lecture.title[0];
-                                    const lectureID = moduleID + "." + weekCode + numToSSColumn(weekCount[lectureWeek]);
+                                    const lectureID = moduleID + "." + currentYear + "." + weekCode + numToSSColumn(weekCount[lectureWeek]);
                                     const author = lecture["itunes:author"][0].replace("Moodle/", "").replace("Moodle", "").replace(`\\`, "");
                                     const videoURL = lecture["enclosure"][0]["$"]["url"];
                                     const videoLength = lecture["itunes:duration"][0];
@@ -833,6 +954,20 @@ exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) =
 
                                     const lectureRef = db.collection("lectures").doc(lectureID);
                                     batch.set(lectureRef, lectureObj);
+                                  
+                            
+                                    const moduleLectureRef = db.collection("modules").doc(moduleID).collection("years").doc(currentYear.toString());
+                                    batch.set(moduleLectureRef, {
+                                      [lectureID]: {
+                                        lectureID: lectureID,
+                                        author: author,
+                                        date: date,
+                                        duration: duration,
+                                        title: title,
+                                        videoLength: videoLength,
+                                        videoURL: videoURL,
+                                      }
+                                    }, {merge: true});
                                 }
                             
                                 for (var i in lectureChecks) {
@@ -862,8 +997,9 @@ exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) =
                                     time.setHours(tH + (hourNo - datetime[1]) % 24);
                                     keyObj.nextUpdate = time.getTime();
                                 }
-                                let keyRef = db.collection("moduleKeys").doc(course.hash);
+                                let keyRef = db.collection("moduleKeys").doc(doc.id);
                                 batch.update(keyRef, keyObj);
+                            
                                 return batch.commit();
                               })
                               .catch(function(err) {
@@ -876,32 +1012,14 @@ exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) =
     }
 });
 
+/*
 exports.createLecture = functions.firestore.document('lectures/{lectureID}').onCreate((snap, context) => {
     const newValue = snap.data();
   console.log("moduleID"+newValue.moduleID); 
   console.log("year"+newValue.year);
-    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year);
+    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year.toString());
   console.log("ref:"+constantLectureRef);
     return constantLectureRef.set({
-      a: true,
-     /* [newValue.lectureID]: {
-        lectureID: newValue.lectureID,
-        author: newValue.author,
-        date: newValue.author,
-        duration: newValue.duration,
-        title: newValue.title,
-        videoLength: newValue.videoLength,
-        videoURL: newValue.videoURL,
-      }*/
-    }, {merge: true}).catch(e =>{
-      throw new Error(e);
-    });;
-});
-
-exports.updateLecture = functions.firestore.document('lectures/{lectureID}').onUpdate((change, context) => {
-    const newValue = change.after.data();
-    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year);
-    return constantLectureRef.update({
       [newValue.lectureID]: {
         lectureID: newValue.lectureID,
         author: newValue.author,
@@ -911,16 +1029,39 @@ exports.updateLecture = functions.firestore.document('lectures/{lectureID}').onU
         videoLength: newValue.videoLength,
         videoURL: newValue.videoURL,
       }
+    }, {merge: true}).catch(e =>{
+      throw new Error(e);
+    });;
+});
+
+exports.updateLecture = functions.firestore.document('lectures/{lectureID}').onUpdate((change, context) => {
+    const newValue = change.after.data();
+    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year.toString());
+    return true;
+    const moduleLectureObj = {
+      [newValue.lectureID]: {
+        lectureID: newValue.lectureID,
+        author: newValue.author,
+        date: newValue.author,
+        duration: newValue.duration,
+        title: newValue.title,
+        videoLength: newValue.videoLength,
+        videoURL: newValue.videoURL,
+      }
+    };
+    return constantLectureRef.update(moduleLectureObj).catch(e => {
+      console.log(e);
     })
 });
 
 exports.deleteLecture = functions.firestore.document('lectures/{lectureID}').onDelete((snap, context) => {
     const newValue = snap.data();
-    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year);
+    const constantLectureRef = db.collection("modules").doc(newValue.moduleID).collection("years").doc(newValue.year.toString());
     return constantLectureRef.update({
       [newValue.lectureID]: FieldValue.delete(),
     })
 });
+*/
 
 exports.addSchool = functions.firestore.document('schools/{schoolID}').onCreate((snap, context) => {
     const newValue = snap.data();
@@ -957,26 +1098,7 @@ exports.addModule = functions.firestore.document('modules/{moduleID}').onCreate(
     const batch = db.batch();
   
     for (var courseID of newValue.courses) {
-      let coursesRef = db.collection("courses").doc(courseID);
-      batch.update(coursesRef, {
-        [newValue.moduleID]: {
-          moduleID: newValue.moduleID,
-          name: newValue.name,
-          stage: newValue.stage,
-          term: newValue.term,
-        },
-      })
-    }
-  
-    return batch.commit();
-});
-
-exports.updateModule = functions.firestore.document('modules/{moduleID}').onUpdate((change, context) => {
-    const newValue = change.after.data();
-    const batch = db.batch();
-  
-    for (var courseID of newValue.courses) {
-      let coursesRef = db.collection("courses").doc(courseID);
+      let coursesRef = db.collection("courses").doc(courseID).collection("constants").modules("modules");
       batch.update(coursesRef, {
         [newValue.moduleID]: {
           moduleID: newValue.moduleID,
@@ -992,17 +1114,18 @@ exports.updateModule = functions.firestore.document('modules/{moduleID}').onUpda
 
 exports.updateModuleYears = functions.firestore.document('modules/{moduleID}').onUpdate((change, context) => {
     const module = change.after.data();
-    const yearsRef = change.after.ref().collection("years");
+    const yearsRef = change.after.ref.collection("years");
   
     return yearsRef.get().then(function(querySnapshot) {
       const batch = db.batch();
       querySnapshot.forEach(function(doc) {
-          doc.ref().update({
+          let yearRef = yearsRef.doc(doc.id);
+          batch.update(yearRef, {
               moduleID: module.moduleID,
               name: module.name,
-              period: module.period,
-              year: module.year,
-          })
+              stage: module.stage,
+              term: module.term,
+          });
       });
       return batch.commit();
     });
@@ -1018,8 +1141,8 @@ exports.updateModule = functions.firestore.document('modules/{moduleID}/years/{y
       return snap.ref.set({
         moduleID: module.moduleID,
         name: module.name,
-        period: module.period,
-        year: module.year,
+        stage: module.stage,
+        term: module.term,
         lectures: {},
       })
     })
@@ -1030,54 +1153,47 @@ exports.deleteModule = functions.firestore.document('modules/{moduleID}').onDele
     const batch = db.batch();
   
     for (var courseID of newValue.courses) {
-      let coursesRef = db.collection("courses").doc(courseID);
+      let coursesRef = db.collection("courses").doc(courseID).collection("constants").modules("modules");
       batch.update(coursesRef, {
-        [newValue.moduleID]: {
-          moduleID: newValue.moduleID,
-          name: newValue.name,
-          stage: newValue.stage,
-          term: newValue.term,
-        },
+        [newValue.moduleID]:  FieldValue.delete(),
       })
     }
   
     return batch.commit();
-    let coursesRef = db.collection("courses").doc(newValue.courseID);
-    return coursesRef.update({
-      [newValue.moduleID]: FieldValue.delete()
-    })
 });
 
-
-exports.addModuleKey = functions.firestore.document('moduleKeys/{modulesKeyID}').onCreate((snap, context) => {
-    const newValue = snap.data();
-    
-    let moduleRef = db.collection("modules").doc(newValue.moduleID);
-    return moduleRef.set({
-      moduleID: newValue.moduleID,
-      name: newValue.name,
-      period: newValue.period,
-      year: newValue.year,
+exports.createCourse = functions.firestore.document('courses/{courseID}').onCreate((snap, context) => {
+    const courseID = context.params.courseID;
+    const course = snap.data();
+    let coursesRef = db.collection("schools").doc(course.schoolID).collection("constants").doc("courses");
+  
+    return coursesRef.set({
+      [courseID]: {
+        courseID: courseID,
+        name: course.name,
+      },
     }, {merge: true});
 });
 
-exports.updateModuleKey = functions.firestore.document('moduleKeys/{modulesKeyID}').onUpdate((change, context) => {
-    const newValue = change.after.data();
+exports.updateCourse = functions.firestore.document('courses/{courseID}').onUpdate((update, context) => {
+    const courseID = context.params.courseID;
+    const course = update.after.data();
+    let coursesRef = db.collection("schools").doc(course.schoolID).collection("constants").doc("courses");
   
-    let moduleRef = db.collection("modules").doc(newValue.moduleID);
-    return moduleRef.update({
-      moduleID: newValue.moduleID,
-      name: newValue.name,
-      period: newValue.period,
-      year: newValue.year,
+    return coursesRef.update({
+      [courseID]: {
+        courseID: courseID,
+        name: course.name,
+      },
     });
 });
 
-exports.deleteModuleKey = functions.firestore.document('moduleKeys/{modulesKeyID}').onDelete((snap, context) => {
-    const newValue = snap.data();
+exports.deleteCourse = functions.firestore.document('courses/{courseID}').onDelete((snap, context) => {
+    const courseID = context.params.courseID;
+    const course = snap.data();
+    let coursesRef = db.collection("schools").doc(course.schoolID).collection("constants").doc("courses");
   
-    let moduleRef = db.collection("modules").doc(newValue.moduleID);
-    return moduleRef.update({
-      active: false,
+    return coursesRef.set({
+      [courseID]: FieldValue.delete(),
     });
 });

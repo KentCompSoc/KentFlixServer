@@ -17,13 +17,13 @@ Then deploy the server locally:
 
 #### Auth
 
-- **[<code>POST</code> /signup](#sign-up)**
 - **[<code>POST</code> /login](#login)**
+- **[<code>POST</code> /signup](#sign-up)**
 - **[<code>GET</code> /verify/:email/:token](#verify-account)**
 
 #### User
 
-- **[<code>GET</code> /:sessionID](#get-session)**
+- **[<code>GET</code> /:sessionID/me](#get-session)**
 
 #### Schools
 
@@ -32,10 +32,21 @@ Then deploy the server locally:
 
 #### Courses
 
-- **[<code>GET</code> /:sessionID/schools/:schoolID/courses](get-courses)**
-- **[<code>GET</code> /:sessionID/courses/:courseID](get-course)**
-- **[<code>GET</code> /:sessionID/courses/:courseID/:year/lectures](get-lectures)**
-- **[<code>GET</code> /:sessionID/lectures/:lectureID](get-lecture)**
+- **[<code>GET</code> /:sessionID/schools/:schoolID/courses](#get-school-courses)**
+- **[<code>GET</code> /:sessionID/courses/:courseID](#get-course)**
+- **[<code>POST</code> /:sessionID/courses/add](#add-courses)**
+
+#### Modules
+
+- **[<code>GET</code> /:sessionID/courses/:schoolID/modules](#get-course-modules)**
+- **[<code>GET</code> /:sessionID/modules/:moduleID](#get-module)**
+- **[<code>POST</code> /:sessionID/modules/add](#add-module)**
+
+#### Lectures
+
+- **[<code>GET</code> /:sessionID/modules/:moduleID/lectures](#get-module-current-lectures)**
+- **[<code>GET</code> /:sessionID/modules/:moduleID/lectures/:year](#get-module-lectures-by-year)**
+- **[<code>GET</code> /:sessionID/lectures/:lectureID](#get-lecture)**
 
 
 ## Usage
@@ -65,7 +76,7 @@ NOTE: Will change to not be within the API itself
 
 ### Get Session
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID
+<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/me
 
 RETURNS: {error: false, responce: COURSE_INFOMATION}
 
