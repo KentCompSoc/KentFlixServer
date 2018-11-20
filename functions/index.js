@@ -6,10 +6,13 @@ const bodyParser = require("body-parser");
 const crypto = require('crypto');
 const requestPromise = require('request-promise');
 const xml2js = require('xml2js-es6-promise');
-const Sentry = require('@sentry/node');
+
+var session = require('express-session');
+const FirestoreStore = require('firestore-store')(session);
+const cookieParser = require('cookie-parser');
 
 admin.initializeApp(functions.config().firebase);
-Sentry.init({ dsn: 'https://31176562c6ef489699d72f797c8f315f@sentry.io/1324602' });
+
 const db = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 db.settings(settings);
@@ -42,24 +45,36 @@ const outlookTransport = nodemailer.createTransport({
   }
 });
 
-main.use('/api/v1', app);
+main.use(function(req, res, next) {
+  console.log(req.url);
+  next();
+});
+
+main.use('/v1', app);
 
 main.use(bodyParser.json());
 main.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(cookieParser('My secret'));
+app.use(session({
+    store: new FirestoreStore({
+         database: db
+    }),
+    name: '__session',
+    secret: 'My secret',
+    resave: true,
+    saveUninitialized: true,
+    cookie: {maxAge : 60000,
+             secure: false,
+             httpOnly: false }
+}));
+
+
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
-
-
-app.use(function(req, res, next) {
-  console.log(req.url);
-  next();
-});
-
-app.use(Sentry.Handlers.requestHandler());
-app.use(Sentry.Handlers.errorHandler());
 
 function getCurrentYear() {
   let yearDate = new Date();
@@ -109,6 +124,23 @@ var sessionChecker = (req, res, next) => {
     });
   } else sendError(res, 400, "No sessionID has been parsed");
 };
+
+
+
+app.get('/id', (req, res) => {
+  console.log(req);
+  const uniqueId = uuid();
+  res.send(`Hit home page. Received the unique id: ${uniqueId}\n`);
+});
+app.get('/test', (req, res) => {
+  if(req.session.page_views){
+       req.session.page_views++;
+       res.send("You visited this page " + req.session.page_views + " times");
+   } else {
+       req.session.page_views = 1;
+       res.send("Welcome to this page for the first time!");
+   }
+});
 
 // AUTHENTICATION //
 
@@ -568,59 +600,26 @@ I hope you will enjoy our service.`;
 });
 
 
-exports.createLectureHash = functions.firestore.document('moduleKeys/{courseKeyID}').onCreate((snap, context) => {
-  const newValue = snap.data();
-  const batch = db.batch();
-  const courseRef = db.collection("courses").doc(newValue.courseCode);
-  batch.set(courseRef, {
-    courseID: newValue.courseCode,
-    name: newValue.name,
-    schoolID: newValue.school,
-    status: "active",
+exports.createModuleHash = functions.firestore.document('moduleKeys/{moduleKeyID}').onCreate((snap, context) => {
+  return snap.ref.update({
+    nextUpdate: 0,
   });
-  
-  const yearRef = db.collection("courses").doc(newValue.courseCode).collection("years").doc(newValue.year); 
-  batch.set(yearRef, {
-    courseID: newValue.courseCode,
-    name: newValue.name,
-    schoolID: newValue.school,
-    term: newValue.period,
-    lectures: {},
-    status: "active",
-  });
-  return batch.commit();
-});
-
-exports.createLectureHash = functions.firestore.document('courseKeys/{courseKeyID}').onDelete((snap, context) => {
-  const newValue = snap.data();
-  const batch = db.batch();
-  const lecturesRef = db.collection("courses").doc(newValue.courseCode);
-  batch.update(lecturesRef, {
-    status: "inactive",
-  });
-  
-  const yearRef = db.collection("courses").doc(newValue.courseCode).collection("years").doc(newValue.year); 
-  batch.update(yearRef, {
-    status: "inactive",
-  });
-  return batch.commit();
 });
 
 exports.updateCourseWhenAddedModule = functions.firestore.document('modules/{moduleID}').onUpdate((change, context) => {
   const newValue = change.after.data();
   const previousValue = change.before.data();
   const batch = db.batch();
-  console.log("NV:"+JSON.stringify(newValue));
-  console.log("PV:"+JSON.stringify(previousValue));
+  
   if (newValue.courses != previousValue.courses) {
     const allCourses = newValue.courses.concat(previousValue.courses);
     let newContains, oldContains;
     
     const moduleObj = {
-      moduleID: previousValue.moduleID,
-      name: previousValue.name,
-      stage: previousValue.stage,
-      term: previousValue.term,
+      moduleID: newValue.moduleID,
+      name: newValue.name,
+      stage: newValue.stage,
+      term: newValue.term,
     };
     
     for (let courseID of allCourses) {
@@ -629,16 +628,10 @@ exports.updateCourseWhenAddedModule = functions.firestore.document('modules/{mod
       let courseModulesRef = db.collection("courses").doc(courseID).collection("constants").doc("modules");
       
       if (newContains) {
-        console.log("newContains:"+JSON.stringify({
-          [newValue.moduleID]: moduleObj,
-        }));
         batch.set(courseModulesRef, {
           [newValue.moduleID]: moduleObj,
         }, {merge: true});
       } else if (oldContains) {
-        console.log("newContains:"+JSON.stringify({
-          [newValue.moduleID]: null,
-        }));
         batch.update(courseModulesRef, {
           [newValue.moduleID]: FieldValue.delete(),
         });
@@ -1098,7 +1091,7 @@ exports.addModule = functions.firestore.document('modules/{moduleID}').onCreate(
     const batch = db.batch();
   
     for (var courseID of newValue.courses) {
-      let coursesRef = db.collection("courses").doc(courseID).collection("constants").modules("modules");
+      let coursesRef = db.collection("courses").doc(courseID).collection("constants").doc("modules");
       batch.update(coursesRef, {
         [newValue.moduleID]: {
           moduleID: newValue.moduleID,
@@ -1110,25 +1103,6 @@ exports.addModule = functions.firestore.document('modules/{moduleID}').onCreate(
     }
   
     return batch.commit();
-});
-
-exports.updateModuleYears = functions.firestore.document('modules/{moduleID}').onUpdate((change, context) => {
-    const module = change.after.data();
-    const yearsRef = change.after.ref.collection("years");
-  
-    return yearsRef.get().then(function(querySnapshot) {
-      const batch = db.batch();
-      querySnapshot.forEach(function(doc) {
-          let yearRef = yearsRef.doc(doc.id);
-          batch.update(yearRef, {
-              moduleID: module.moduleID,
-              name: module.name,
-              stage: module.stage,
-              term: module.term,
-          });
-      });
-      return batch.commit();
-    });
 });
 
 exports.updateModule = functions.firestore.document('modules/{moduleID}/years/{yearID}').onCreate((snap, context) => {

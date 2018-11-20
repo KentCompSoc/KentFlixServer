@@ -12,7 +12,7 @@
     ],
     "rewrites": [
       {
-        "source": "/api/v1/**",
+        "source": "/v1/**",
         "function": "webApi"
       }
     ]
