@@ -2,30 +2,30 @@
 
 #### Auth
 
-- **[<code>POST</code> /login](./login)**
-- **[<code>POST</code> /signup](./signup)**
-- **[<code>GET</code> /verify/:email/:token](./verify)**
+- **[<code>POST</code> /login](./login/README.md)**
+- **[<code>POST</code> /signup](./signup/README.md)**
+- **[<code>GET</code> /verify/:email/:token](./verify/README.md)**
 
 #### User
 
-- **[<code>GET</code> /:sessionID/me](./me)**
+- **[<code>GET</code> /:sessionID/me](./me/README.md)**
 
 #### Schools
 
-- **[<code>GET</code> /:sessionID/schools](./getSchools)**
-- **[<code>POST</code> /:sessionID/schools/add](./addSchool)**
+- **[<code>GET</code> /:sessionID/schools](./getSchools/README.md)**
+- **[<code>POST</code> /:sessionID/schools/add](./addSchool/README.md)**
 
 #### Courses
 
-- **[<code>GET</code> /:sessionID/schools/:schoolID/courses](./getCoursesForSchool)**
-- **[<code>GET</code> /:sessionID/courses/:courseID](./getCourse)**
-- **[<code>POST</code> /:sessionID/courses/add](./addCourses)**
+- **[<code>GET</code> /:sessionID/schools/:schoolID/courses](./getCoursesForSchool/README.md)**
+- **[<code>GET</code> /:sessionID/courses/:courseID](./getCourse/README.md)**
+- **[<code>POST</code> /:sessionID/courses/add](./addCourses/README.md)**
 
 #### Modules
 
-- **[<code>GET</code> /:sessionID/courses/:schoolID/modules](./getModulesForCourse)**
-- **[<code>GET</code> /:sessionID/modules/:moduleID](./getModule)**
-- **[<code>POST</code> /:sessionID/modules/add](./addModule)**
+- **[<code>GET</code> /:sessionID/courses/:schoolID/modules](./getModulesForCourse/README.md)**
+- **[<code>GET</code> /:sessionID/modules/:moduleID](./getModule/README.md)**
+- **[<code>POST</code> /:sessionID/modules/add](./addModule/README.md)**
 
 #### Lectures (Not currently documentated)
 

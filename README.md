@@ -15,4 +15,4 @@ Then deploy the server locally:
 
 ## Endpoints Documentation
 
-[See documentation](./endpoints)
+[See documentation](./endpoints/README.md)
