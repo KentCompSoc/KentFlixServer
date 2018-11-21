@@ -29,21 +29,21 @@ Will become redundent when api version v1.1 is released
 ***Successful Addition of Module***
 ``` json
 {
-    success: true,
-    payload: {
-        message: "Module has been created",
+    "success": true,
+    "payload": {
+        "message": "Module has been created",
     },
-    status: 200,
+    "status": 200,
 }
 ```
 
 ***Failed to Create Course***
 ``` json
 {
-    success: false,
+    "success": false,
     error: {
-      message: "Failed to create a module",
+      "message": "Failed to create a module",
     },
-    status: 500,
+    "status": 500,
 }
 ```

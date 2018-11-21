@@ -17,7 +17,7 @@ Then deploy the server locally:
 
 #### Auth
 
-- **[<code>POST</code> /login](#login)**
+- **[<code>POST</code> /login](./endpoints/login)**
 - **[<code>POST</code> /signup](#sign-up)**
 - **[<code>GET</code> /verify/:email/:token](#verify-account)**
 

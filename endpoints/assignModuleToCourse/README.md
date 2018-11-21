@@ -18,21 +18,21 @@ Might become redundent when api version v1.1 is released
 ***Successful Assignment of Module***
 ``` json
 {
-    success: true,
-    payload: {
-        message: "Module has been assigned to course,
+    "success": true,
+    "payload": {
+        "message": "Module has been assigned to course,
     },
-    status: 200,
+    "status": 200,
 }
 ```
 
 ***Failed to Assign Module***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Failed to assign module to course",
+    "success": false,
+    "error": {
+      "message": "Failed to assign module to course",
     },
-    status: 500,
+    "status": 500,
 }
 ```

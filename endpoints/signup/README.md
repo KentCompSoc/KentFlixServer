@@ -21,8 +21,8 @@ An user can sign up to use the platform and once verified will be able to return
 **Body**
 ``` json
 {
-  email: "abc123@kent.ac.uk",
-  password : "examplar_password",
+  "email": "abc123@kent.ac.uk",
+  "password": "examplar_password",
 }
 ```
 **Results**
@@ -30,54 +30,54 @@ An user can sign up to use the platform and once verified will be able to return
 ***Successful Login***
 ``` json
 {
-    success: true,
-    payload: {
-        message: "Now verify you account by checking your emails",
+    "success": true,
+    "payload": {
+        "message": "Now verify you account by checking your emails",
     },
-    status: 200,
+    "status": 200,
 }
 ```
 
 ***Invalid Email***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Please use a valid email",
+    "success": false,
+    "error": {
+      "message": "Please use a valid email",
     },
-    status: 205,
+    "status": 205,
 }
 ```
 
 ***Invalid Password***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Please use a valid password",
+    "success": false,
+    "error": {
+      "message": "Please use a valid password",
     },
-    status: 205,
+    "status": 205,
 }
 ```
 
 ***A user already has that email***
 ``` json
 {
-    success: false,
-    error: {
-      message: "This email has already been used",
+    "success": false,
+    "error": {
+      "message": "This email has already been used",
     },
-    status: 211,
+    "status": 211,
 }
 ```
 
 ***Failed to signup the user***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Failed to signup",
+    "success": false,
+    "error": {
+      "message": "Failed to signup",
     },
-    status: 500,
+    "status": 500,
 }
 ```

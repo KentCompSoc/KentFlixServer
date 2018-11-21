@@ -15,10 +15,10 @@ Able to recieve all the infomation based on the user to support a customised fee
 ***Successful Users profile***
 ``` json
 {
-    success: true,
-    payload: {
+    "success": true,
+    "payload": {
       sessionID: "<SESSION_ID>"
     },
-    status: 200,
+    "status": 200,
 }
 ```

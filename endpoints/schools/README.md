@@ -15,25 +15,25 @@ Get all the schools that are currently accessable on the system, returned as a m
 ***Successful fetch of schools***
 ``` json
 {
-    success: true,
-    payload: {
+    "success": true,
+    "payload": {
         "SoC": {
             "name": "School of Computing",
             "schoolID": "SoC",
         },
         ...
     },
-    status: 200,
+    "status": 200,
 }
 ```
 
 ***Failed to get schools***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Failed to get schools",
+    "success": false,
+    "error": {
+      "message": "Failed to get schools",
     },
-    status: 500,
+    "status": 500,
 }
 ```

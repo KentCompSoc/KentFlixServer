@@ -15,8 +15,8 @@ Get all the modules that is within the given course that are currently accessabl
 ***Successful Fetch of Modules***
 ``` json
 {
-    success: true,
-    payload: {
+    "success": true,
+    "payload": {
         "CO520": {
             "moduleID": "CO520",
             "name": "Further Object-Oriented Programming",
@@ -25,28 +25,28 @@ Get all the modules that is within the given course that are currently accessabl
         },
         ...
     },
-    status: 200,
+    "status": 200,
 }
 ```
 
 ***Course isnt on our System***
 ``` json
 {
-    success: false,
-    error: {
-      message: "We do not has this course on our records",
+    "success": false,
+    "error": {
+      "message": "We do not has this course on our records",
     },
-    status: 500,
+    "status": 500,
 }
 ```
 
 ***Failed to Get Modules***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Failed to get modules",
+    "success": false,
+    "error": {
+      "message": "Failed to get modules",
     },
-    status: 500,
+    "status": 500,
 }
 ```

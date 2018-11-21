@@ -15,65 +15,65 @@ Once a user has signed up they will be able verify their account to use and acce
 ***Successful Verification***
 ``` json
 {
-    success: true,
-    payload: {
-        message: "User has been verified, you can now log into the app",
+    "success": true,
+    "payload": {
+        "message": "User has been verified, you can now log into the app",
     },
-    status: 200,
+    "status": 200,
 }
 ```
 
 ***Already been verified***
 ``` json
 {
-    success: false,
-    error: {
-      message: "You have already been verified",
+    "success": false,
+    "error": {
+      "message": "You have already been verified",
     },
-    status: 211,
+    "status": 211,
 }
 ```
 
 ***Token given wasnt the correct one***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Incorrect Token",
+    "success": false,
+    "error": {
+      "message": "Incorrect Token",
     },
-    status: 205,
+    "status": 205,
 }
 ```
 
 ***A user already has that email***
 ``` json
 {
-    success: false,
-    error: {
-      message: "This email has already been used",
+    "success": false,
+    "error": {
+      "message": "This email has already been used",
     },
-    status: 211,
+    "status": 211,
 }
 ```
 
 ***Failed to verify the account***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Failed to verify this user",
+    "success": false,
+    "error": {
+      "message": "Failed to verify this user",
     },
-    status: 500,
+    "status": 500,
 }
 ```
 
 ***No user with that email***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Failed to find a new user by that email",
+    "success": false,
+    "error": {
+      "message": "Failed to find a new user by that email",
     },
-    status: 500,
+    "status": 500,
 }
 ```

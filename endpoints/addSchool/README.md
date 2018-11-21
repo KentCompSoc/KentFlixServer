@@ -26,21 +26,21 @@ Will become redundent when api version v1.1 is released
 ***Successful Addition of School***
 ``` json
 {
-    success: true,
-    payload: {
-        message: "Created School",
+    "success": true,
+    "payload": {
+        "message": "Created School",
     },
-    status: 200,
+    "status": 200,
 }
 ```
 
 ***Failed to create school***
 ``` json
 {
-    success: false,
+    "success": false,
     error: {
-      message: "Failed to create a school",
+      "message": "Failed to create a school",
     },
-    status: 500,
+    "status": 500,
 }
 ```

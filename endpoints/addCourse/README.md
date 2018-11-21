@@ -27,21 +27,21 @@ Will become redundent when api version v1.1 is released
 ***Successful Addition of Course***
 ``` json
 {
-    success: true,
-    payload: {
-        message: "Course has been created",
+    "success": true,
+    "payload": {
+        "message": "Course has been created",
     },
-    status: 200,
+    "status": 200,
 }
 ```
 
 ***Failed to Create Course***
 ``` json
 {
-    success: false,
-    error: {
-      message: "Failed to create a course",
+    "success": false,
+    "error": {
+      "message": "Failed to create a course",
     },
-    status: 500,
+    "status": 500,
 }
 ```
