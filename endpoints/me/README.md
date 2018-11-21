@@ -5,13 +5,6 @@
 ## Description
 Able to recieve all the infomation based on the user to support a customised feel for each user
 
-***
-
-## Parameters
-- None
-
-***
-
 ## Example
 **Request**
 
@@ -19,7 +12,7 @@ Able to recieve all the infomation based on the user to support a customised fee
 
 **Results**
 
-***Successful Login***
+***Successful Users profile***
 ``` json
 {
     success: true,

@@ -93,6 +93,10 @@ function validateEmail(email) {
 }
 
 var sendSuccess = (res, payload) => {
+  if (typeof payload == "string")
+    payload = {
+      message: payload,
+    };
   const responce = {
     "success": true,
     "payload": payload,
@@ -229,7 +233,7 @@ app.get('/verify/:email/:tokenID', (req, res) => {
           return sendSuccess(res, "User has been verified, you can now log into the app");
         })
         .catch(function(error) {
-          return sendError(res, 205, "Failed to verify this user");
+          return sendError(res, 500, "Failed to verify this user");
         });
       } else {
         return sendError(res, 205, "Incorrect Token");
@@ -259,14 +263,14 @@ app.get('/:sessionID/schools', sessionChecker, (req, res) => {
     res.set('Cache-Control', 'public, max-age=900, s-maxage=1800');
     return sendSuccess(res, schools);
   }).catch(error =>{
-    return sendError(res, 400, "Failed to get schools");
+    return sendError(res, 500, "Failed to get schools");
   });
 });
 
 app.post('/:sessionID/schools/add', sessionChecker, (req, res) => {
   const values = req.body;
-  const schoolID = values.schoolID;
-  const schoolName = values.schoolName;
+  const schoolID = values.shorthand;
+  const schoolName = values.name;
   const schoolRef = db.collection("schools").doc(schoolID);
   
   return schoolRef.set({
@@ -291,14 +295,14 @@ app.get('/:sessionID/schools/:schoolID/courses', sessionChecker, (req, res) => {
       return sendSuccess(res, doc.data());
     }
   }).catch(error =>{
-    return sendError(res, 400, "Failed to get courses");
+    return sendError(res, 500, "Failed to get courses");
   });
 });
 
 app.post('/:sessionID/courses/add', sessionChecker, (req, res) => {
   const values = req.body;
-  const courseID = values.courseID;
-  const courseName = values.courseName;
+  const courseID = values.code;
+  const courseName = values.name;
   const schoolID = values.schoolID;
   const batch = db.batch();
   
@@ -316,7 +320,7 @@ app.post('/:sessionID/courses/add', sessionChecker, (req, res) => {
   return batch.commit().then(function() {
     return sendSuccess(res, "Course has been created");
   }).catch(a =>{
-    return sendError(res, 400, "Failed to create a course");
+    return sendError(res, 500, "Failed to create a course");
   });
 });
 
@@ -328,12 +332,12 @@ app.get('/:sessionID/courses/:courseID', sessionChecker, (req, res) => {
   
   return moduleRef.get().then(function(doc) {
     if (!doc.exists || doc.data() == null || doc.data() == {}) {
-      return sendError(res, 400, "We do not have this course on our records");
+      return sendError(res, 500, "We do not have this course on our records");
     } else {
       return sendSuccess(res, doc.data());
     }
   }).catch(error =>{
-    return sendError(res, 400, "Failed to get course");
+    return sendError(res, 500, "Failed to get course");
   });
 });
 
@@ -343,22 +347,22 @@ app.get('/:sessionID/courses/:courseID/modules', sessionChecker, (req, res) => {
   
   return moduleRef.get().then(function(doc) {
     if (!doc.exists || !doc.data() || doc.data() == null || doc.data() == {}) {
-      return sendError(res, 400, "We do not any courses for this on our records");
+      return sendError(res, 400, "We do not has this course on our records");
     } else {
       return sendSuccess(res, doc.data());
     }
   }).catch(error =>{
-    return sendError(res, 400, "Failed to get course");
+    return sendError(res, 500, "Failed to get modules");
   });
 });
 
 app.post('/:sessionID/modules/add', sessionChecker, (req, res) => {
   const values = req.body;
-  const moduleCode = values.moduleCode;
-  const moduleName = values.moduleName;
-  const moduleCourseID = values.moduleCourseID;
-  const moduleStage = values.moduleState;
-  const moduleTerm = values.moduleTerm;
+  const moduleCode = values.code;
+  const moduleName = values.name;
+  const moduleCourseID = values.courseID;
+  const moduleStage = values.stage;
+  const moduleTerm = values.term;
   const batch = db.batch();
   
   const modulesRef = db.collection("modules").doc(moduleCode);
@@ -381,7 +385,7 @@ app.post('/:sessionID/modules/add', sessionChecker, (req, res) => {
   return batch.commit().then(function() {
     return sendSuccess(res, "Module has been created");
   }).catch(a =>{
-    return sendError(res, 400, "Failed to create a module" + a);
+    return sendError(res, 500, "Failed to create a module" + a);
   });
 });
 
@@ -397,7 +401,7 @@ app.post('/:sessionID/modules/:moduleID/assignTo/:courseID', sessionChecker, (re
   }).then(function() {
     return sendSuccess(res, "Module has been assigned to course");
   }).catch(error => {
-    return sendError(res, 400, "Failed to assign module to course");
+    return sendError(res, 500, "Failed to assign module to course");
   });
 });
 
@@ -868,6 +872,100 @@ exports.cron_getModules = functions.pubsub.topic('weekly-tick').onPublish((messa
         });
     });
 });*/
+
+exports.weeks2018 = functions.pubsub.topic('daily-tick').onPublish((message) => {
+  const batch = db.batch();
+  const weekRef = db.collection("constant").doc("weeks");
+  
+  batch.update(weekRef, {
+    [2489]: {
+      code: "F",
+      state: "F",
+      string: "Freshers",
+      year: 2018,
+    }
+  })
+  
+  let a = 1;
+  for (var i = 2490; i < 2502; i ++) {
+    batch.update(weekRef, {
+      [i.toString()]: {
+        code: "W"+a,
+        state: "W",
+        string: "Week "+a,
+        year: 2018,
+      }
+    })
+    a++;
+  }
+  
+  a = 1;
+  for (var i = 2502; i < 2506; i ++) {
+    batch.update(weekRef, {
+      [i.toString()]: {
+        code: "C"+a,
+        state: "C",
+        string: "Christmas "+a,
+        year: 2018,
+      }
+    })
+    a++;
+  }
+  
+  a = 13;
+  for (var i = 2506; i < 2518; i ++) {
+    batch.update(weekRef, {
+      [i.toString()]: {
+        code: "W"+a,
+        state: "W",
+        string: "Week "+a,
+        year: 2018,
+      }
+    })
+    a++;
+  }
+  
+  a = 1;
+  for (var i = 2518; i < 2522; i ++) {
+    batch.update(weekRef, {
+      [i.toString()]: {
+        code: "C"+a,
+        state: "C",
+        string: "Christmas "+a,
+        year: 2018,
+      }
+    })
+    a++;
+  }
+  
+  a = 25;
+  for (var i = 2522; i < 2528; i ++) {
+    batch.update(weekRef, {
+      [i.toString()]: {
+        code: "W"+a,
+        state: "W",
+        string: "Week "+a,
+        year: 2018,
+      }
+    })
+    a++;
+  }
+  
+  a = 1;
+  for (var i = 2528; i < 2537; i ++) {
+    batch.update(weekRef, {
+      [i.toString()]: {
+        code: "S"+a,
+        state: "S",
+        string: "Summer "+a,
+        year: 2018,
+      }
+    })
+    a++;
+  }
+  
+  return batch.commit();
+});
 
 exports.hourly_job = functions.pubsub.topic('hourly-tick').onPublish((message) => {
     const hour = new Date().getHours();
