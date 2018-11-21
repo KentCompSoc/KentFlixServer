@@ -31,7 +31,9 @@ An user can sign up to use the platform and once verified will be able to return
 ``` json
 {
     success: true,
-    payload: "Now verify you account by checking your emails",
+    payload: {
+        message: "Now verify you account by checking your emails",
+    },
     status: 200,
 }
 ```

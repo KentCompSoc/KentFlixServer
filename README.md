@@ -53,13 +53,13 @@ Then deploy the server locally:
 
 ### Sign Up
 
-<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/signup
+<code>POST</code> https://api.kentflix.com/v1/signup
 
 BODY: email, password
 
 ### Login
 
-<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/login
+<code>POST</code> https://api.kentflix.com/v1/login
 
 BODY: email, password
 
@@ -69,26 +69,26 @@ EXAMPLE RETURN:
 
 ### Verify Account
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/verify/:email/:token
+<code>GET</code> https://api.kentflix.com/v1/verify/:email/:token
 
 NOTE: Will change to not be within the API itself
 
 
 ### Get Session
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/me
+<code>GET</code> https://api.kentflix.com/v1/:sessionID/me
 
 RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Get Schools 
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools
+<code>GET</code> https://api.kentflix.com/v1/:sessionID/schools
 
 RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Add School
 
-<code>POST</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools/add
+<code>POST</code> https://api.kentflix.com/v1/:sessionID/schools/add
 
 BODY: schoolID would be short hand for the school (SoC) and schoolName would be the name of the school (School of Computing)
 
@@ -96,7 +96,7 @@ RETURNS: {error: false, infoMessage: "School Created"}
 
 ### Get Courses
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/schools/:schoolID/courses
+<code>GET</code> https://api.kentflix.com/v1/:sessionID/schools/:schoolID/courses
 
 PARAMETERS: schoolID would be SoC
 
@@ -104,7 +104,7 @@ RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Get Course
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID
+<code>GET</code> https://api.kentflix.com/v1/:sessionID/courses/:courseID
 
 PARAMETERS: courseID would be CO320
 
@@ -112,7 +112,7 @@ RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Get Lectures
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/courses/:courseID/:year/lectures
+<code>GET</code> https://api.kentflix.com/v1/:sessionID/courses/:courseID/:year/lectures
 
 PARAMETERS: courseID would be CO320, year would be 2017 or 2018
 
@@ -120,7 +120,7 @@ RETURNS: {error: false, responce: COURSE_INFOMATION}
 
 ### Get Lecture
 
-<code>GET</code> https://kentflix-7f510.firebaseapp.com/api/v1/:sessionID/lectures/:lectureID
+<code>GET</code> https://api.kentflix.com/v1/:sessionID/lectures/:lectureID
 
 PARAMETERS: lectureID would be the lecture hash from [Get Lectures](#get-lectures)
 
