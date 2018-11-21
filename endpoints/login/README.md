@@ -32,7 +32,7 @@ An existing user for the platform will be able to return to access the system us
 {
     "success": true,
     "payload": {
-        sessionID: "<SESSION_STRING>",
+        "sessionID": "<SESSION_STRING>",
     },
     "status": 200,
 }
