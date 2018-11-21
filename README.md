@@ -9,10 +9,10 @@ Then deploy the server locally:
 
 	firebase deploy
     
+## Endpoints Documentation
+
+[See documentation](./endpoints/README.md)    
+
 ## Cron Jobs Engine
 
 [See info](https://github.com/KentCompSoc/KentFlixServer/tree/master/appengine)
-
-## Endpoints Documentation
-
-[See documentation](./endpoints/README.md)
